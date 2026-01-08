@@ -1,0 +1,906 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Список получателей рассылки{% endblock %}
+
+{% block body %}
+{% include 'header.html' %}
+
+<style>
+    .recipients-container {
+        padding: 30px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        margin-bottom: 30px;
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .header-title {
+        color: #2c3e50;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .header-title i {
+        color: #4361ee;
+        font-size: 2rem;
+    }
+
+    .header-stats {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .stat-badge {
+        background: white;
+        border-radius: 10px;
+        padding: 10px 20px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid #eef2f7;
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    .stat-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-value {
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: #2c3e50;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .btn-add {
+        background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        border: none;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+    }
+
+    .btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-export {
+        background: white;
+        border: 2px solid #4361ee;
+        color: #4361ee;
+        padding: 12px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+    }
+
+    .btn-export:hover {
+        background: #4361ee;
+        color: white;
+        text-decoration: none;
+    }
+
+    .filters-section {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        border: 1px solid #eef2f7;
+    }
+
+    .filters-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .filters-title {
+        color: #4361ee;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        align-items: end;
+    }
+
+    .filter-group {
+        margin-bottom: 0;
+    }
+
+    .filter-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 5px;
+    }
+
+    .filter-input {
+        border: 2px solid #e0e6ed;
+        border-radius: 8px;
+        padding: 10px 15px;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .filter-input:focus {
+        border-color: #4361ee;
+        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.15);
+        outline: none;
+    }
+
+    .recipients-table-container {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+        border: 1px solid #eef2f7;
+    }
+
+    .table {
+        margin: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table thead {
+        background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    }
+
+    .table thead th {
+        color: white;
+        font-weight: 600;
+        padding: 20px;
+        border: none;
+        text-align: left;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f0f4f8;
+    }
+
+    .table tbody tr:hover {
+        background: rgba(67, 97, 238, 0.03);
+        transform: translateX(5px);
+    }
+
+    .table tbody td {
+        padding: 18px 20px;
+        vertical-align: middle;
+        border: none;
+        color: #495057;
+        font-size: 0.95rem;
+    }
+
+    .email-cell {
+        font-weight: 500;
+        color: #2c3e50;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .email-cell i {
+        color: #4361ee;
+        font-size: 1.1rem;
+    }
+
+    .name-cell {
+        color: #6c757d;
+    }
+
+    .comment-cell {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #868e96;
+        font-size: 0.9rem;
+    }
+
+    .actions-cell {
+        width: 220px;
+        min-width: 220px;
+    }
+
+    .actions-group {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: none;
+    }
+
+    .action-btn-view {
+        background: rgba(52, 152, 219, 0.1);
+        color: #3498db;
+        border: 1px solid rgba(52, 152, 219, 0.2);
+    }
+
+    .action-btn-view:hover {
+        background: #3498db;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .action-btn-edit {
+        background: rgba(243, 156, 18, 0.1);
+        color: #f39c12;
+        border: 1px solid rgba(243, 156, 18, 0.2);
+    }
+
+    .action-btn-edit:hover {
+        background: #f39c12;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .action-btn-delete {
+        background: rgba(231, 76, 60, 0.1);
+        color: #e74c3c;
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+
+    .action-btn-delete:hover {
+        background: #e74c3c;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .owner-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(67, 97, 238, 0.1);
+        color: #4361ee;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        margin-left: 10px;
+        font-weight: 500;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+
+    .empty-state-title {
+        color: #6c757d;
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+    }
+
+    .empty-state-text {
+        color: #adb5bd;
+        margin-bottom: 25px;
+    }
+
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .pagination {
+        display: flex;
+        gap: 5px;
+    }
+
+    .page-link {
+        border: 2px solid #e0e6ed;
+        color: #495057;
+        border-radius: 8px;
+        padding: 8px 15px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .page-link:hover {
+        background: #4361ee;
+        color: white;
+        border-color: #4361ee;
+        text-decoration: none;
+    }
+
+    .page-link.active {
+        background: #4361ee;
+        color: white;
+        border-color: #4361ee;
+    }
+
+    .footer-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 2px solid #f0f4f8;
+    }
+
+    .bulk-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .bulk-select {
+        border: 2px solid #e0e6ed;
+        border-radius: 8px;
+        padding: 8px 15px;
+        background: white;
+    }
+
+    .btn-bulk-action {
+        background: white;
+        border: 2px solid #e0e6ed;
+        color: #495057;
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-bulk-action:hover {
+        background: #f8f9fa;
+        border-color: #dee2e6;
+    }
+
+    @media (max-width: 768px) {
+        .header-content {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .header-stats {
+            justify-content: center;
+        }
+
+        .filter-form {
+            grid-template-columns: 1fr;
+        }
+
+        .actions-group {
+            flex-direction: column;
+        }
+
+        .action-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .table {
+            display: block;
+            overflow-x: auto;
+        }
+    }
+</style>
+
+<div class="recipients-container">
+    <!-- Заголовок страницы -->
+    <div class="page-header">
+        <div class="header-content">
+            <div>
+                <h1 class="header-title">
+                    <i class="fas fa-users"></i> Список получателей рассылки
+                </h1>
+                <p class="text-muted mb-0">Управление базой клиентов для email-рассылок</p>
+            </div>
+
+            <div class="header-stats">
+                <div class="stat-badge">
+                    <div class="stat-icon" style="background: #4361ee;">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <div class="stat-text">
+                        <div class="stat-value">{{ recipients_count|default:"0" }}</div>
+                        <div class="stat-label">Всего получателей</div>
+                    </div>
+                </div>
+
+                <div class="stat-badge">
+                    <div class="stat-icon" style="background: #2ecc71;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-text">
+                        <div class="stat-value">{{ active_recipients|default:"0" }}</div>
+                        <div class="stat-label">Активных</div>
+                    </div>
+                </div>
+
+                {% if user.is_superuser %}
+                <div class="stat-badge">
+                    <div class="stat-icon" style="background: #f39c12;">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="stat-text">
+                        <div class="stat-value">{{ unique_owners|default:"0" }}</div>
+                        <div class="stat-label">Владельцев</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Кнопки действий -->
+        <div class="action-buttons">
+            <a href="{% url 'sending_mail:recipient_new' %}" class="btn-add">
+                <i class="fas fa-user-plus"></i> Добавить нового получателя
+            </a>
+
+            <button type="button" class="btn-export" id="exportBtn">
+                <i class="fas fa-file-export"></i> Экспорт в CSV
+            </button>
+        </div>
+    </div>
+
+    <!-- Фильтры поиска -->
+    <div class="filters-section">
+        <div class="filters-header">
+            <h3 class="filters-title">
+                <i class="fas fa-filter"></i> Фильтры поиска
+            </h3>
+            <button type="button" class="btn btn-sm btn-link text-decoration-none" id="clearFilters">
+                <i class="fas fa-times"></i> Сбросить фильтры
+            </button>
+        </div>
+
+        <form method="get" id="filterForm" class="filter-form">
+            <div class="filter-group">
+                <label class="filter-label">Поиск по email</label>
+                <input type="text"
+                       name="email"
+                       class="filter-input"
+                       placeholder="Введите email..."
+                       value="{{ request.GET.email|default_if_none:'' }}">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Поиск по имени</label>
+                <input type="text"
+                       name="name"
+                       class="filter-input"
+                       placeholder="Введите ФИО..."
+                       value="{{ request.GET.name|default_if_none:'' }}">
+            </div>
+
+            {% if user.is_superuser %}
+            <div class="filter-group">
+                <label class="filter-label">Владелец</label>
+                <select name="owner" class="filter-input">
+                    <option value="">Все владельцы</option>
+                    {% for owner in owners %}
+                        <option value="{{ owner.id }}" {% if request.GET.owner == owner.id|stringformat:"s" %}selected{% endif %}>
+                            {{ owner.username }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <div class="filter-group">
+                <button type="submit" class="btn btn-primary" style="height: 42px;">
+                    <i class="fas fa-search me-2"></i> Найти
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Таблица получателей -->
+    <div class="recipients-table-container">
+        {% if recipients %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th width="30">
+                            <input type="checkbox" id="selectAll" class="form-check-input">
+                        </th>
+                        <th>Email получателя</th>
+                        <th>ФИО получателя</th>
+                        <th>Комментарий</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for recipient in recipients %}
+                    {% if user == recipient.owner or perms.sending_mail.can_view_recipient %}
+                    <tr data-recipient-id="{{ recipient.pk }}">
+                        <td>
+                            <input type="checkbox" class="recipient-checkbox form-check-input" value="{{ recipient.pk }}">
+                        </td>
+                        <td>
+                            <div class="email-cell">
+                                <i class="fas fa-envelope"></i>
+                                <div>
+                                    {{ recipient.email }}
+                                    {% if user != recipient.owner %}
+                                        <span class="owner-badge">
+                                            <i class="fas fa-user-tie"></i> {{ recipient.owner.username }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="name-cell">
+                            {{ recipient.recipient_name|default:"Не указано" }}
+                        </td>
+                        <td class="comment-cell" title="{{ recipient.comment|default:'Нет комментария' }}">
+                            {{ recipient.comment|truncatechars:80|default:"Нет комментария" }}
+                        </td>
+                        <td class="actions-cell">
+                            <div class="actions-group">
+                                <a href="{% url 'sending_mail:recipient' recipient.pk %}"
+                                   class="action-btn action-btn-view"
+                                   title="Просмотреть детали">
+                                    <i class="fas fa-eye"></i> Просмотр
+                                </a>
+
+                                {% if user == recipient.owner %}
+                                <a href="{% url 'sending_mail:recipient_edit' recipient.pk %}"
+                                   class="action-btn action-btn-edit"
+                                   title="Редактировать">
+                                    <i class="fas fa-edit"></i> Редакт.
+                                </a>
+
+                                <a href="{% url 'sending_mail:recipient_delete' recipient.pk %}"
+                                   class="action-btn action-btn-delete"
+                                   title="Удалить"
+                                   onclick="return confirm('Вы уверены, что хотите удалить получателя {{ recipient.email }}?')">
+                                    <i class="fas fa-trash-alt"></i> Удалить
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <!-- Состояние пустого списка -->
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-users-slash"></i>
+                </div>
+                <h3 class="empty-state-title">Получатели не найдены</h3>
+                <p class="empty-state-text">
+                    {% if request.GET %}
+                        Попробуйте изменить параметры поиска
+                    {% else %}
+                        Добавьте первого получателя, чтобы начать работу
+                    {% endif %}
+                </p>
+                <a href="{% url 'sending_mail:recipient_new' %}" class="btn-add">
+                    <i class="fas fa-user-plus"></i> Добавить получателя
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Пагинация -->
+    {% if is_paginated %}
+    <div class="pagination-container">
+        <nav>
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+
+    <!-- Футер с групповыми действиями -->
+    {% if recipients %}
+    <div class="footer-actions">
+        <div class="bulk-actions">
+            <select class="bulk-select" id="bulkAction">
+                <option value="">Действие с выбранными</option>
+                <option value="export">Экспортировать выбранных</option>
+                {% if user.is_superuser %}
+                <option value="change_owner">Изменить владельца</option>
+                {% endif %}
+                <option value="delete">Удалить выбранных</option>
+            </select>
+            <button type="button" class="btn-bulk-action" id="applyBulkAction">
+                <i class="fas fa-play"></i> Применить
+            </button>
+        </div>
+
+        <div>
+            <a href="{% url 'sending_mail:home' %}" class="btn btn-outline-primary">
+                <i class="fas fa-home me-2"></i> На главную
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Выделение всех чекбоксов
+        $('#selectAll').change(function() {
+            $('.recipient-checkbox').prop('checked', $(this).prop('checked'));
+            updateBulkActionButton();
+        });
+
+        // Обновление кнопки "Выделить все"
+        $('.recipient-checkbox').change(function() {
+            const total = $('.recipient-checkbox').length;
+            const checked = $('.recipient-checkbox:checked').length;
+            $('#selectAll').prop('checked', total === checked);
+            updateBulkActionButton();
+        });
+
+        function updateBulkActionButton() {
+            const checked = $('.recipient-checkbox:checked').length;
+            $('#applyBulkAction').prop('disabled', checked === 0);
+        }
+
+        // Групповые действия
+        $('#applyBulkAction').click(function() {
+            const action = $('#bulkAction').val();
+            const selected = $('.recipient-checkbox:checked').map(function() {
+                return $(this).val();
+            }).get();
+
+            if (selected.length === 0) {
+                toastr.warning('Выберите хотя бы одного получателя', 'Внимание');
+                return;
+            }
+
+            if (!action) {
+                toastr.warning('Выберите действие', 'Внимание');
+                return;
+            }
+
+            switch(action) {
+                case 'export':
+                    exportSelectedRecipients(selected);
+                    break;
+
+                case 'delete':
+                    if (confirm(`Вы уверены, что хотите удалить ${selected.length} получателей?`)) {
+                        deleteSelectedRecipients(selected);
+                    }
+                    break;
+
+                case 'change_owner':
+                    changeOwnerForSelected(selected);
+                    break;
+            }
+        });
+
+        function exportSelectedRecipients(ids) {
+            // Реализация экспорта в CSV
+            const data = ids.join(',');
+            const url = `{% url 'sending_mail:export_recipients_csv' %}?ids=${data}`;
+            window.open(url, '_blank');
+            toastr.success('Экспорт начат', 'Успешно');
+        }
+
+        function deleteSelectedRecipients(ids) {
+            // Реализация удаления выбранных получателей
+            $.ajax({
+                url: '{% url "sending_mail:bulk_delete_recipients" %}',
+                type: 'POST',
+                data: {
+                    'ids': ids,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(`Удалено ${response.deleted} получателей`, 'Успешно');
+                        location.reload();
+                    } else {
+                        toastr.error('Ошибка при удалении', 'Ошибка');
+                    }
+                },
+                error: function() {
+                    toastr.error('Ошибка при удалении', 'Ошибка');
+                }
+            });
+        }
+
+        function changeOwnerForSelected(ids) {
+            // Реализация смены владельца
+            const newOwner = prompt('Введите имя нового владельца (username):');
+            if (newOwner) {
+                $.ajax({
+                    url: '{% url "sending_mail:bulk_change_owner" %}',
+                    type: 'POST',
+                    data: {
+                        'ids': ids,
+                        'owner': newOwner,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success('Владелец изменен', 'Успешно');
+                            location.reload();
+                        } else {
+                            toastr.error(response.error || 'Ошибка', 'Ошибка');
+                        }
+                    }
+                });
+            }
+        }
+
+        // Экспорт в CSV
+        $('#exportBtn').click(function() {
+            const url = '{% url "sending_mail:export_recipients_csv" %}';
+            window.open(url, '_blank');
+            toastr.success('Экспорт начат', 'Успешно');
+        });
+
+        // Сброс фильтров
+        $('#clearFilters').click(function() {
+            window.location.href = '{% url "sending_mail:recipient_list" %}';
+        });
+
+        // Быстрый поиск при вводе
+        let searchTimeout;
+        $('.filter-input').on('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                $('#filterForm').submit();
+            }, 500);
+        });
+
+        // Подсветка строк при наведении
+        $('tbody tr').hover(
+            function() {
+                $(this).css('cursor', 'pointer');
+            },
+            function() {
+                $(this).css('cursor', 'default');
+            }
+        );
+
+        // Клик по строке (кроме чекбоксов и кнопок)
+        $('tbody tr').click(function(e) {
+            if (!$(e.target).is('input, a, button')) {
+                const recipientId = $(this).data('recipient-id');
+                if (recipientId) {
+                    window.location.href = `{% url "sending_mail:recipient" 0 %}`.replace('0', recipientId);
+                }
+            }
+        });
+
+        // Информация о количестве
+        const totalRecipients = {{ recipients_count|default:"0" }};
+        if (totalRecipients > 0) {
+            toastr.info(`Загружено ${totalRecipients} получателей`, 'Информация', {
+                timeOut: 3000
+            });
+        }
+
+        // Обновление статистики
+        function updateStats() {
+            $.ajax({
+                url: '{% url "sending_mail:recipient_stats" %}',
+                type: 'GET',
+                success: function(data) {
+                    if (data.total) {
+                        $('.stat-value').eq(0).text(data.total);
+                    }
+                }
+            });
+        }
+
+        // Автообновление каждые 60 секунд
+        setInterval(updateStats, 60000);
+    });
+</script>
+{% endblock %}

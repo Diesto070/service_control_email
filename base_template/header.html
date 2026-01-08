@@ -1,0 +1,50 @@
+<nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'sending_mail:home' %}">
+            <i class="fas fa-mail-bulk me-2"></i>
+            <span>Рассылки</span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mailingNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mailingNavbar">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'mailing_list' %}active{% endif %}"
+                       href="{% url 'sending_mail:message_list' %}">
+                        <i class="fas fa-list me-1"></i> Все рассылки
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'mailing_new' %}active{% endif %}"
+                       href="{% url 'sending_mail:mailing_new' %}">
+                        <i class="fas fa-plus-circle me-1"></i> Новая рассылка
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'sending_mail:mailing_list' %}">
+                        <i class="fas fa-envelope me-1"></i> Шаблоны
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'sending_mail:recipient_list' %}">
+                        <i class="fas fa-users me-1"></i> Получатели
+                    </a>
+                </li>
+            </ul>
+
+            <div class="d-flex align-items-center">
+                {% if user.is_authenticated %}
+                    <span class="text-light me-3">
+                        <i class="fas fa-user me-1"></i> {{ user.username }}
+                    </span>
+                    <a href="{% url 'user:logout' %}" class="btn btn-sm btn-outline-light">
+                        <i class="fas fa-sign-out-alt me-1"></i> Выйти
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>

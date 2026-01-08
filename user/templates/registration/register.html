@@ -1,0 +1,698 @@
+{% extends 'base.html' %}
+{% block body %}
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --secondary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    body {
+        background: var(--primary-gradient);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        padding: 40px 0;
+    }
+
+    .auth-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        overflow: hidden;
+    }
+
+    .auth-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .auth-body {
+        padding: 2rem;
+    }
+
+    .form-control:focus {
+        border-color: #f5576c;
+        box-shadow: 0 0 0 0.25rem rgba(245, 87, 108, 0.25);
+    }
+
+    .btn-auth {
+        background: var(--primary-gradient);
+        border: none;
+        color: white;
+        transition: all 0.3s ease;
+        padding: 12px;
+        font-weight: 500;
+    }
+
+    .btn-auth:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        color: white;
+    }
+
+    .logo {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-floating {
+        margin-bottom: 1.5rem;
+    }
+
+    .password-container {
+        position: relative;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        z-index: 10;
+        background: none;
+        border: none;
+        color: #6c757d;
+    }
+
+    .progress {
+        height: 5px;
+        margin-top: 5px;
+    }
+
+    .requirements {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+
+    .requirement {
+        margin-bottom: 2px;
+    }
+
+    .requirement.met {
+        color: #28a745;
+    }
+
+    .requirement.unmet {
+        color: #dc3545;
+    }
+
+    .requirement i {
+        margin-right: 5px;
+    }
+
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        position: relative;
+    }
+
+    .step {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        z-index: 2;
+        position: relative;
+    }
+
+    .step.active {
+        background: var(--primary-gradient);
+        color: white;
+    }
+
+    .step.completed {
+        background: #28a745;
+        color: white;
+    }
+
+    .step-line {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        height: 2px;
+        background: #e9ecef;
+        z-index: 1;
+    }
+
+    .step-content {
+        display: none;
+    }
+
+    .step-content.active {
+        display: block;
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .nav-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+    }
+</style>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="auth-card">
+                <!-- Заголовок -->
+                <div class="auth-header">
+                    <div class="logo">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h1 class="h3 mb-3 fw-normal">Создание аккаунта</h1>
+                    <p class="mb-0">Присоединяйтесь к нашему сервису</p>
+                </div>
+
+                <!-- Тело формы -->
+                <div class="auth-body">
+                    <!-- Индикатор шагов -->
+                    <div class="step-indicator">
+                        <div class="step active" data-step="1">1</div>
+                        <div class="step" data-step="2">2</div>
+                        <div class="step" data-step="3">3</div>
+                        <div class="step-line"></div>
+                    </div>
+
+                    <!-- Форма регистрации -->
+                    <form id="register-form" method="post" action="{% url 'user:register' %}">
+                        {% csrf_token %}
+
+                        <!-- Шаг 1: Основная информация -->
+                        <div class="step-content active" id="step1">
+                            <h5 class="mb-4"><i class="fas fa-user-circle me-2"></i>Основная информация</h5>
+
+                            <!-- Email -->
+                            <div class="form-floating">
+                                <input type="email"
+                                       name="email"
+                                       class="form-control"
+                                       id="id_email"
+                                       placeholder="name@example.com"
+                                       required
+                                       data-step="1">
+                                <label for="id_email">
+                                    <i class="fas fa-envelope me-2"></i>Email адрес *
+                                </label>
+                                <div class="invalid-feedback" id="email-error"></div>
+                                <small class="form-text text-muted">На этот email будет отправлено письмо для
+                                    подтверждения</small>
+                            </div>
+
+                            <!-- Username -->
+                            <div class="form-floating">
+                                <input type="text"
+                                       name="username"
+                                       class="form-control"
+                                       id="id_username"
+                                       placeholder="username"
+                                       required
+                                       data-step="1">
+                                <label for="id_username">
+                                    <i class="fas fa-user me-2"></i>Имя пользователя *
+                                </label>
+                                <div class="invalid-feedback" id="username-error"></div>
+                            </div>
+
+                            <div class="nav-buttons">
+                                <button type="button" class="btn btn-outline-secondary" disabled>
+                                    <i class="fas fa-arrow-left me-2"></i>Назад
+                                </button>
+                                <button type="button" class="btn btn-primary next-step" data-next="2">
+                                    Далее <i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Шаг 2: Пароль -->
+                        <div class="step-content" id="step2">
+                            <h5 class="mb-4"><i class="fas fa-lock me-2"></i>Безопасность пароля</h5>
+
+                            <!-- Пароль 1 -->
+                            <div class="form-floating password-container">
+                                <input type="password"
+                                       name="password1"
+                                       class="form-control"
+                                       id="id_password1"
+                                       placeholder="Пароль"
+                                       required
+                                       data-step="2">
+                                <label for="id_password1">
+                                    <i class="fas fa-key me-2"></i>Пароль *
+                                </label>
+                                <button type="button" class="password-toggle toggle-password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <div class="invalid-feedback" id="password1-error"></div>
+                            </div>
+
+                            <!-- Прогресс бар пароля -->
+                            <div class="progress mb-2">
+                                <div class="progress-bar" id="password-strength-bar" role="progressbar"
+                                     style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted" id="password-strength-text">Введите пароль</small>
+
+                            <!-- Требования к паролю -->
+                            <div class="requirements mt-3">
+                                <div class="requirement" id="req-length">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Минимум 8 символов</span>
+                                </div>
+                                <div class="requirement" id="req-upper">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Хотя бы одна заглавная буква</span>
+                                </div>
+                                <div class="requirement" id="req-lower">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Хотя бы одна строчная буква</span>
+                                </div>
+                                <div class="requirement" id="req-number">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Хотя бы одна цифра</span>
+                                </div>
+                                <div class="requirement" id="req-special">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Хотя бы один специальный символ (!@#$%^&*)</span>
+                                </div>
+                            </div>
+
+                            <!-- Пароль 2 -->
+                            <div class="form-floating password-container mt-4">
+                                <input type="password"
+                                       name="password2"
+                                       class="form-control"
+                                       id="id_password2"
+                                       placeholder="Подтверждение пароля"
+                                       required
+                                       data-step="2">
+                                <label for="id_password2">
+                                    <i class="fas fa-key me-2"></i>Подтвердите пароль *
+                                </label>
+                                <button type="button" class="password-toggle toggle-confirm">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <div class="invalid-feedback" id="password2-error"></div>
+                            </div>
+
+                            <div class="nav-buttons">
+                                <button type="button" class="btn btn-outline-secondary prev-step" data-prev="1">
+                                    <i class="fas fa-arrow-left me-2"></i>Назад
+                                </button>
+                                <button type="button" class="btn btn-primary next-step" data-next="3">
+                                    Далее <i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Шаг 3: Дополнительная информация -->
+                        <div class="step-content" id="step3">
+                            <h5 class="mb-4"><i class="fas fa-info-circle me-2"></i>Дополнительная информация</h5>
+
+                            <!-- Телефон -->
+                            <div class="form-floating">
+                                <input type="tel"
+                                       name="phone"
+                                       class="form-control"
+                                       id="id_phone"
+                                       placeholder="+7 (999) 999-99-99"
+                                       data-step="3"
+                                       pattern="[\+]?[0-9\s\-\(\)]+">
+                                <label for="id_phone">
+                                    <i class="fas fa-phone me-2"></i>Телефон
+                                </label>
+                                <small class="form-text text-muted">Формат: +7 (999) 999-99-99</small>
+                            </div>
+
+                            <!-- Страна -->
+                            <div class="form-floating">
+                                <input type="text"
+                                       name="country"
+                                       class="form-control"
+                                       id="id_country"
+                                       placeholder="Россия"
+                                       data-step="3">
+                                <label for="id_country">
+                                    <i class="fas fa-globe me-2"></i>Страна
+                                </label>
+                            </div>
+
+                            <!-- Согласие с условиями -->
+                            <div class="form-check mb-4">
+                                <input class="form-check-input" type="checkbox" id="terms" required>
+                                <label class="form-check-label" for="terms">
+                                    Я согласен с <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">условиями
+                                    использования</a> и
+                                    <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">политикой
+                                        конфиденциальности</a> *
+                                </label>
+                                <div class="invalid-feedback" id="terms-error"></div>
+                            </div>
+
+                            <div class="nav-buttons">
+                                <button type="button" class="btn btn-outline-secondary prev-step" data-prev="2">
+                                    <i class="fas fa-arrow-left me-2"></i>Назад
+                                </button>
+                                <button type="submit" class="btn btn-auth" id="submit-btn">
+                                    <i class="fas fa-user-plus me-2"></i>
+                                    <span id="submit-text">Зарегистрироваться</span>
+                                    <span id="submit-spinner" style="display: none;">
+                                            <i class="fas fa-spinner fa-spin me-2"></i>Регистрация...
+                                        </span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Уже есть аккаунт -->
+                        <div class="text-center mt-4">
+                            <p class="mb-0">Уже есть аккаунт?</p>
+                            <a href="{% url 'user:login' %}" class="btn btn-outline-primary mt-2">
+                                <i class="fas fa-sign-in-alt me-2"></i>Войти в аккаунт
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно с условиями -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Условия использования</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Здесь будут условия использования сервиса...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно с политикой конфиденциальности -->
+<div class="modal fade" id="privacyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Политика конфиденциальности</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Здесь будет политика конфиденциальности...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Текущий шаг
+        let currentStep = 1;
+
+        // Инициализация форм
+        initializeForm();
+
+        function initializeForm() {
+            // Переключение видимости пароля
+            $('.toggle-password').click(function() {
+                const field = $('#id_password1');
+                togglePasswordVisibility(field, $(this));
+            });
+
+            $('.toggle-confirm').click(function() {
+                const field = $('#id_password2');
+                togglePasswordVisibility(field, $(this));
+            });
+
+            // Переключение между шагами
+            $('.next-step').click(function() {
+                const nextStep = $(this).data('next');
+                if (validateStep(currentStep)) {
+                    goToStep(nextStep);
+                }
+            });
+
+            $('.prev-step').click(function() {
+                const prevStep = $(this).data('prev');
+                goToStep(prevStep);
+            });
+
+            // Валидация пароля в реальном времени
+            $('#id_password1').on('input', function() {
+                validatePasswordStrength($(this).val());
+            });
+
+            // Форматирование телефона
+            $('#id_phone').on('input', function() {
+                formatPhoneNumber($(this));
+            });
+
+            // Валидация формы при отправке
+            $('#register-form').submit(function(e) {
+                e.preventDefault();
+
+                if (validateForm()) {
+                    showLoading();
+                    this.submit();
+                }
+            });
+
+            // Автофокус на первое поле текущего шага
+            focusFirstField();
+        }
+
+        function togglePasswordVisibility(field, button) {
+            const type = field.attr('type') === 'password' ? 'text' : 'password';
+            field.attr('type', type);
+            button.find('i').toggleClass('fa-eye fa-eye-slash');
+        }
+
+        function goToStep(step) {
+            // Скрыть текущий шаг
+            $(`#step${currentStep}`).removeClass('active');
+            $(`.step[data-step="${currentStep}"]`).removeClass('active').removeClass('completed');
+
+            // Показать новый шаг
+            $(`#step${step}`).addClass('active');
+            $(`.step[data-step="${step}"]`).addClass('active');
+
+            // Отметить предыдущие шаги как завершенные
+            for (let i = 1; i < step; i++) {
+                $(`.step[data-step="${i}"]`).addClass('completed');
+            }
+
+            currentStep = step;
+            focusFirstField();
+        }
+
+        function validateStep(step) {
+            let isValid = true;
+
+            // Очистка предыдущих ошибок
+            $(`[data-step="${step}"]`).removeClass('is-invalid');
+            $(`[data-step="${step}"]`).siblings('.invalid-feedback').text('');
+
+            switch(step) {
+                case 1:
+                    // Валидация email
+                    const email = $('#id_email').val().trim();
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                    if (!email) {
+                        $('#id_email').addClass('is-invalid');
+                        $('#email-error').text('Пожалуйста, введите email');
+                        isValid = false;
+                    } else if (!emailRegex.test(email)) {
+                        $('#id_email').addClass('is-invalid');
+                        $('#email-error').text('Введите корректный email адрес');
+                        isValid = false;
+                    }
+
+                    // Валидация username
+                    const username = $('#id_username').val().trim();
+                    if (!username) {
+                        $('#id_username').addClass('is-invalid');
+                        $('#username-error').text('Пожалуйста, введите имя пользователя');
+                        isValid = false;
+                    } else if (username.length < 3) {
+                        $('#id_username').addClass('is-invalid');
+                        $('#username-error').text('Имя пользователя должно быть не менее 3 символов');
+                        isValid = false;
+                    }
+                    break;
+
+                case 2:
+                    // Валидация пароля
+                    const password1 = $('#id_password1').val();
+                    const password2 = $('#id_password2').val();
+
+                    if (!password1) {
+                        $('#id_password1').addClass('is-invalid');
+                        $('#password1-error').text('Пожалуйста, введите пароль');
+                        isValid = false;
+                    }
+
+                    if (!password2) {
+                        $('#id_password2').addClass('is-invalid');
+                        $('#password2-error').text('Пожалуйста, подтвердите пароль');
+                        isValid = false;
+                    } else if (password1 !== password2) {
+                        $('#id_password2').addClass('is-invalid');
+                        $('#password2-error').text('Пароли не совпадают');
+                        isValid = false;
+                    }
+                    break;
+            }
+
+            if (!isValid) {
+                toastr.error('Пожалуйста, исправьте ошибки в форме', 'Ошибка валидации');
+            }
+
+            return isValid;
+        }
+
+        function validatePasswordStrength(password) {
+            const requirements = {
+                length: password.length >= 8,
+                upper: /[A-Z]/.test(password),
+                lower: /[a-z]/.test(password),
+                number: /\d/.test(password),
+                special: /[!@#$%^&*]/.test(password)
+            };
+
+            // Обновить иконки требований
+            Object.keys(requirements).forEach(key => {
+                const element = $(`#req-${key}`);
+                if (requirements[key]) {
+                    element.addClass('met').removeClass('unmet');
+                    element.find('i').removeClass('fa-circle').addClass('fa-check-circle');
+                } else {
+                    element.addClass('unmet').removeClass('met');
+                    element.find('i').addClass('fa-circle').removeClass('fa-check-circle');
+                }
+            });
+
+            // Обновить прогресс бар
+            const metCount = Object.values(requirements).filter(Boolean).length;
+            const percentage = (metCount / 5) * 100;
+
+            $('#password-strength-bar').css('width', percentage + '%');
+
+            // Обновить текст и цвет
+            let text = 'Слабый';
+            let color = '#dc3545';
+
+            if (percentage >= 80) {
+                text = 'Очень надежный';
+                color = '#28a745';
+            } else if (percentage >= 60) {
+                text = 'Надежный';
+                color = '#17a2b8';
+            } else if (percentage >= 40) {
+                text = 'Средний';
+                color = '#ffc107';
+            }
+
+            $('#password-strength-bar').css('background-color', color);
+            $('#password-strength-text').text(text).css('color', color);
+        }
+
+        function formatPhoneNumber(input) {
+            let value = input.val().replace(/\D/g, '');
+
+            if (value.length > 0) {
+                if (!value.startsWith('7') && !value.startsWith('8')) {
+                    value = '7' + value;
+                }
+
+                let formatted = '+7 ';
+
+                if (value.length > 1) {
+                    formatted += '(' + value.substring(1, 4);
+                }
+                if (value.length >= 4) {
+                    formatted += ') ' + value.substring(4, 7);
+                }
+                if (value.length >= 7) {
+                    formatted += '-' + value.substring(7, 9);
+                }
+                if (value.length >= 9) {
+                    formatted += '-' + value.substring(9, 11);
+                }
+
+                input.val(formatted);
+            }
+        }
+
+        function validateForm() {
+            let isValid = true;
+
+            // Проверить все шаги
+            for (let i = 1; i <= 3; i++) {
+                if (!validateStep(i)) {
+                    goToStep(i);
+                    isValid = false;
+                    break;
+                }
+            }
+
+            // Проверить согласие с условиями
+            if (!$('#terms').is(':checked')) {
+                $('#terms').addClass('is-invalid');
+                $('#terms-error').text('Вы должны согласиться с условиями использования');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function showLoading() {
+            $('#submit-text').hide();
+            $('#submit-spinner').show();
+            $('#submit-btn').prop('disabled', true);
+        }
+
+        function focusFirstField() {
+            setTimeout(() => {
+                $(`#step${currentStep} .form-control:first`).focus();
+            }, 300);
+        }
+
+        // Показать ошибки Django формы
+        {% if form.errors %}
+        $(document).ready(function() {
+            toastr.error('Пожалуйста, исправьте ошибки в форме', 'Ошибка регистрации');
+
+            // Автоматически перейти к первому шагу с ошибкой
+            const errors = {{ form.errors|safe }};
+            for (let field in errors) {
+                const element = $(`[name="${field}"]`);
+                if (element.length) {
+                    const step = element.data('step') || 1;
+                    goToStep(step);
+                    element.addClass('is-invalid');
+                    element.siblings('.invalid-feedback').text(errors[field][0]);
+                    break;
+                }
+            }
+        });
+        {% endif %}
+    });
+</script>
+{% endblock %}

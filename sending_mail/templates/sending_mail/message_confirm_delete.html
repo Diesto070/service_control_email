@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление сообщения{% endblock %}
+
+{% block body %}
+{% include 'header.html' %}
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <h6>Вы действительно хотите удалить сообщение?</h6>
+    <button class="btn btn-danger" type="submit">Подтвердить</button>
+    <a href="{% url 'sending_mail:message_list' %}" class="btn btn-success" style="margin: 3px;">Отмена</a>
+</form>
+
+{% endblock %}
