@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Попытки рассылок{% endblock %}
+
+{% block body %}
+{% include 'header.html' %}
+<h2 class="pt-3 pb-2 mb-3">Попытки рассылок</h2>
+<p>Всего попыток: {{ total_attempts }}</p>
+<p>Успешных попыток: {{ successful_attempts }}</p>
+<p>Неуспешных попыток: {{ unsucessful_attempts }}</p>
+<p>Количество отправленных сообщений: {{ sending_mails }}</p>
+<div class="table-responsive small">
+    {% if attempts %}
+  <h2 class="pt-3 pb-2 mb-3">История попыток</h2>
+    <table class="table table-striped table-sm">
+        <thead>
+        <tr>
+            <th scope="col">Тема рассылки</th>
+            <th scope="col">Статус</th>
+            <th scope="col">Ответ сервера</th>
+            <th scope="col">Дата попытки</th>
+            <th scope="col">Действия</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for attempt in attempts %}
+        <tr>
+            <td>
+                {% if attempt.mailing %}
+                    {{ attempt.mailing.message.topik|default:"Без темы" }}
+                {% else %}
+                    Рассылка удалена
+                {% endif %}
+            </td>
+            <td>
+                <span class="badge {% if attempt.status == 'успешно' %}bg-success{% else %}bg-danger{% endif %}">
+                    {{ attempt.status }}
+                </span>
+            </td>
+            <td>{{ attempt.server_response|truncatechars:30 }}</td>
+            <td>{{ attempt.attempt_datetime|date:"d.m.Y H:i" }}</td>
+            <td><a href="{% url 'sending_mail:send_attempt' attempt.pk %}" class="btn btn-outline-success btn-sm">Посмотреть</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-danger">
+        {% if user.is_authenticated %}
+            У вас пока нет попыток рассылок
+        {% else %}
+            Для просмотра статистики необходимо <a href="{% url 'user:login' %}" class="btn btn-sm" style="color: black; background: #C26C4A;">войти на сайт</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Попытка рассылок{% endblock %}
+
+{% block body %}
+{% include 'header.html' %}
+<h2 class="pt-3 pb-2 mb-3">Попытка рассылки {{attempt.mailing.message.topik|default:"Без темы"}}</h2>
+<p>Статус: {{ attempt.status }}</p>
+<p>Ответ сервера: {{ attempt.server_response|truncatechars:120 }}</p>
+<p>Дата попытки: {{ attempt.attempt_datetime|date:"d.m.Y H:i" }}</p>
+<p><strong>Получатели:</strong></p>
+    <ul>
+        {% for recipient in attempt.mailing.recipients.all %}
+        <li>{{ recipient.recipient_name }} ({{ recipient.email }})</li>
+        {% endfor %}
+    </ul>
+<a href="{% url 'sending_mail:send_attempt_list' %}" class="btn btn-sm" style="color: black; background: burlywood;">К списку попыток рассылок</a>
+<a href="{% url 'sending_mail:home' %}" class="btn btn-sm" style="color: black; background: #C26C4A;">На главную</a>
+{% endblock %}

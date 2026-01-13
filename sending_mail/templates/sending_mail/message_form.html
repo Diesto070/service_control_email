@@ -1,0 +1,1056 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if object %}Редактирование шаблона{% else %}Создание нового шаблона{% endif %}{% endblock %}
+
+{% block body %}
+{% include 'header.html' %}
+
+<style>
+    .template-form-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 30px;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        border: 1px solid #eef2f7;
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .form-header-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        color: white;
+        font-size: 2rem;
+    }
+
+    .form-title {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+
+    .form-subtitle {
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+
+    .form-section {
+        margin-bottom: 30px;
+        padding-bottom: 25px;
+        border-bottom: 2px solid #f0f4f8;
+    }
+
+    .section-title {
+        color: #4361ee;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .form-label i {
+        color: #4361ee;
+        width: 20px;
+        text-align: center;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e0e6ed;
+        border-radius: 10px;
+        padding: 14px 18px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f8fafc;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #4361ee;
+        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.15);
+        background: white;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 150px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+    }
+
+    .char-counter {
+        font-size: 0.85rem;
+        color: #6c757d;
+        text-align: right;
+        margin-top: 8px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .char-counter.warning {
+        color: #f39c12;
+    }
+
+    .char-counter.danger {
+        color: #e74c3c;
+    }
+
+    .form-text {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 3px solid #4361ee;
+    }
+
+    .form-text i {
+        color: #4361ee;
+        font-size: 1rem;
+    }
+
+    .error-message {
+        color: #e74c3c;
+        font-size: 0.875rem;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px;
+        background: rgba(231, 76, 60, 0.1);
+        border-radius: 8px;
+        border-left: 4px solid #e74c3c;
+    }
+
+    .variables-section {
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 2px dashed #dee2e6;
+    }
+
+    .variables-title {
+        color: #2c3e50;
+        font-weight: 600;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .variables-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .variable-item {
+        background: white;
+        border: 1px solid #e0e6ed;
+        border-radius: 8px;
+        padding: 10px 15px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .variable-item:hover {
+        background: #4361ee;
+        color: white;
+        border-color: #4361ee;
+        transform: translateY(-2px);
+    }
+
+    .variable-item:hover .variable-code {
+        color: white;
+        background: rgba(255,255,255,0.2);
+    }
+
+    .variable-code {
+        background: #f0f4f8;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+        color: #4361ee;
+        font-weight: 500;
+    }
+
+    .variable-desc {
+        font-size: 0.85rem;
+        flex: 1;
+    }
+
+    .preview-section {
+        margin-top: 30px;
+    }
+
+    .preview-card {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        border: 2px solid #e0e6ed;
+        margin-top: 15px;
+    }
+
+    .preview-title {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #f0f4f8;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .preview-content {
+        line-height: 1.6;
+        color: #495057;
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        white-space: pre-wrap;
+    }
+
+    .preview-meta {
+        display: flex;
+        gap: 15px;
+        margin-top: 15px;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .category-tags {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+
+    .category-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .category-tag:hover {
+        transform: scale(1.05);
+    }
+
+    .tag-promo { background: rgba(255, 107, 107, 0.1); color: #ff6b6b; border: 1px solid rgba(255, 107, 107, 0.2); }
+    .tag-news { background: rgba(77, 171, 247, 0.1); color: #4dabf7; border: 1px solid rgba(77, 171, 247, 0.2); }
+    .tag-notification { background: rgba(130, 201, 30, 0.1); color: #82c91e; border: 1px solid rgba(130, 201, 30, 0.2); }
+    .tag-welcome { background: rgba(250, 176, 5, 0.1); color: #fab005; border: 1px solid rgba(250, 176, 5, 0.2); }
+    .tag-other { background: rgba(134, 142, 150, 0.1); color: #868e96; border: 1px solid rgba(134, 142, 150, 0.2); }
+
+    .tag-selected {
+        background: #4361ee;
+        color: white;
+        border-color: #4361ee;
+    }
+
+    .tag-selected.tag-promo { background: #ff6b6b; }
+    .tag-selected.tag-news { background: #4dabf7; }
+    .tag-selected.tag-notification { background: #82c91e; }
+    .tag-selected.tag-welcome { background: #fab005; }
+    .tag-selected.tag-other { background: #868e96; }
+
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 2px solid #f0f4f8;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        border: none;
+        color: white;
+        padding: 14px 35px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        justify-content: center;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(46, 204, 113, 0.3);
+        color: white;
+    }
+
+    .btn-cancel {
+        background: #f8f9fa;
+        border: 2px solid #e0e6ed;
+        color: #6c757d;
+        padding: 14px 35px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        justify-content: center;
+    }
+
+    .btn-cancel:hover {
+        background: #e9ecef;
+        color: #495057;
+        border-color: #dee2e6;
+        text-decoration: none;
+    }
+
+    .btn-preview {
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        border: none;
+        color: white;
+        padding: 10px 25px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .btn-preview:hover {
+        background: #2980b9;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .icon-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .icon-option {
+        width: 50px;
+        height: 50px;
+        border: 2px solid #e0e6ed;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: white;
+        font-size: 1.2rem;
+        color: #6c757d;
+    }
+
+    .icon-option:hover {
+        border-color: #4361ee;
+        transform: scale(1.1);
+    }
+
+    .icon-option.selected {
+        border-color: #4361ee;
+        background: #4361ee;
+        color: white;
+    }
+
+    .template-examples {
+        margin-top: 20px;
+    }
+
+    .example-item {
+        padding: 12px;
+        border: 1px solid #e0e6ed;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .example-item:hover {
+        border-color: #4361ee;
+        background: rgba(67, 97, 238, 0.05);
+    }
+
+    .example-title {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .example-category {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .btn-use-example {
+        padding: 5px 12px;
+        border-radius: 6px;
+        background: rgba(67, 97, 238, 0.1);
+        color: #4361ee;
+        border: none;
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+
+    .btn-use-example:hover {
+        background: #4361ee;
+        color: white;
+    }
+
+    @media (max-width: 768px) {
+        .template-form-container {
+            padding: 15px;
+        }
+
+        .form-card {
+            padding: 25px;
+        }
+
+        .variables-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn-submit, .btn-cancel {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="template-form-container">
+    <div class="form-card">
+        <!-- Заголовок формы -->
+        <div class="form-header">
+            <div class="form-header-icon">
+                <i class="fas fa-envelope-open-text"></i>
+            </div>
+            <h1 class="form-title">
+                {% if object %}
+                    <i class="fas fa-edit text-primary me-2"></i>Редактирование шаблона
+                {% else %}
+                    <i class="fas fa-plus-circle text-success me-2"></i>Создание нового шаблона
+                {% endif %}
+            </h1>
+            <p class="form-subtitle">
+                {% if object %}
+                    Измените параметры шаблона для email-рассылок
+                {% else %}
+                    Создайте новый шаблон письма для использования в рассылках
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Форма -->
+        <form method="post" id="templateForm" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Секция 1: Основная информация -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-info-circle"></i> Основная информация
+                </h3>
+
+                <!-- Тема письма -->
+                <div class="form-group">
+                    <label for="id_topik" class="form-label">
+                        <i class="fas fa-heading"></i> Тема письма *
+                    </label>
+                    <input type="text"
+                           name="topik"
+                           id="id_topik"
+                           class="form-control"
+                           value="{{ form.topik.value|default_if_none:'' }}"
+                           placeholder="Например: Новогодняя распродажа 2025"
+                           required
+                           maxlength="150"
+                           autofocus>
+                    <div class="char-counter">
+                        <span id="subjectLength">0</span> / 150 символов
+                    </div>
+                    <div class="form-text">
+                        <i class="fas fa-lightbulb"></i>
+                        Тема письма - это первое, что видят получатели. Сделайте её привлекательной!
+                    </div>
+                    {% if form.topik.errors %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.topik.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Иконка шаблона -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-icons"></i> Иконка шаблона
+                    </label>
+                    <div class="icon-options" id="iconOptions">
+                        {% for icon in icons %}
+                            <div class="icon-option {% if form.icon.value == icon %}selected{% endif %}"
+                                 data-icon="{{ icon }}">
+                                <i class="fas fa-{{ icon }}"></i>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="icon" id="id_icon" value="{{ form.icon.value|default:'envelope' }}">
+                </div>
+            </div>
+
+            <!-- Секция 2: Текст письма -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-file-alt"></i> Текст письма
+                </h3>
+
+                <!-- Переменные -->
+                <div class="variables-section">
+                    <div class="variables-title">
+                        <i class="fas fa-magic"></i> Доступные переменные
+                    </div>
+                    <p class="form-text">
+                        <i class="fas fa-info-circle"></i>
+                        Вставляйте переменные в текст, чтобы персонализировать письма
+                    </p>
+
+                    <div class="variables-grid" id="variablesGrid">
+                        <div class="variable-item" data-variable="{{first_name}}">
+                            <span class="variable-code">{{first_name}}</span>
+                            <span class="variable-desc">Имя получателя</span>
+                        </div>
+                        <div class="variable-item" data-variable="{{last_name}}">
+                            <span class="variable-code">{{last_name}}</span>
+                            <span class="variable-desc">Фамилия получателя</span>
+                        </div>
+                        <div class="variable-item" data-variable="{{email}}">
+                            <span class="variable-code">{{email}}</span>
+                            <span class="variable-desc">Email получателя</span>
+                        </div>
+                        <div class="variable-item" data-variable="{{company}}">
+                            <span class="variable-code">{{company}}</span>
+                            <span class="variable-desc">Название компании</span>
+                        </div>
+                        <div class="variable-item" data-variable="{{current_date}}">
+                            <span class="variable-code">{{current_date}}</span>
+                            <span class="variable-desc">Текущая дата</span>
+                        </div>
+                        <div class="variable-item" data-variable="{{unsubscribe_link}}">
+                            <span class="variable-code">{{unsubscribe_link}}</span>
+                            <span class="variable-desc">Ссылка отписки</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Текст письма -->
+                <div class="form-group">
+                    <label for="id_text" class="form-label">
+                        <i class="fas fa-align-left"></i> Текст письма *
+                    </label>
+                    <textarea name="text"
+                              id="id_text"
+                              class="form-control"
+                              rows="10"
+                              placeholder="Введите текст вашего письма. Вы можете использовать переменные для персонализации."
+                              required>{{ form.text.value|default_if_none:'' }}</textarea>
+                    <div class="char-counter">
+                        <span id="textLength">0</span> / 10000 символов
+                    </div>
+                    <div class="form-text">
+                        <i class="fas fa-edit"></i>
+                        Используйте HTML разметку для форматирования текста (жирный, курсив, списки)
+                    </div>
+                    {% if form.text.errors %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.text.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Быстрые шаблоны -->
+                <div class="template-examples">
+                    <h6 class="mb-3"><i class="fas fa-bolt me-2"></i>Быстрые шаблоны</h6>
+                    <div class="example-item" data-example="welcome">
+                        <div>
+                            <div class="example-title">Приветственное письмо</div>
+                            <div class="example-category">Добро пожаловать в наш сервис!</div>
+                        </div>
+                        <button type="button" class="btn-use-example" onclick="useExample('welcome')">
+                            Использовать
+                        </button>
+                    </div>
+                    <div class="example-item" data-example="promo">
+                        <div>
+                            <div class="example-title">Промо-акция</div>
+                            <div class="example-category">Специальное предложение для вас</div>
+                        </div>
+                        <button type="button" class="btn-use-example" onclick="useExample('promo')">
+                            Использовать
+                        </button>
+                    </div>
+                    <div class="example-item" data-example="notification">
+                        <div>
+                            <div class="example-title">Уведомление</div>
+                            <div class="example-category">Важная информация</div>
+                        </div>
+                        <button type="button" class="btn-use-example" onclick="useExample('notification')">
+                            Использовать
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Секция 3: Категория и теги -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-tags"></i> Категория и теги
+                </h3>
+
+                <!-- Категория -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-folder"></i> Категория шаблона
+                    </label>
+                    <div class="category-tags" id="categoryTags">
+                        <span class="category-tag tag-promo {% if form.category.value == 'promo' %}tag-selected{% endif %}"
+                              data-category="promo">
+                            <i class="fas fa-percentage"></i> Промоакции
+                        </span>
+                        <span class="category-tag tag-news {% if form.category.value == 'news' %}tag-selected{% endif %}"
+                              data-category="news">
+                            <i class="fas fa-newspaper"></i> Новости
+                        </span>
+                        <span class="category-tag tag-notification {% if form.category.value == 'notification' %}tag-selected{% endif %}"
+                              data-category="notification">
+                            <i class="fas fa-bell"></i> Уведомления
+                        </span>
+                        <span class="category-tag tag-welcome {% if form.category.value == 'welcome' %}tag-selected{% endif %}"
+                              data-category="welcome">
+                            <i class="fas fa-hand-wave"></i> Приветственные
+                        </span>
+                        <span class="category-tag tag-other {% if not form.category.value or form.category.value == 'other' %}tag-selected{% endif %}"
+                              data-category="other">
+                            <i class="fas fa-ellipsis-h"></i> Другое
+                        </span>
+                    </div>
+                    <input type="hidden" name="category" id="id_category" value="{{ form.category.value|default:'other' }}">
+                </div>
+
+                <!-- Теги -->
+                <div class="form-group">
+                    <label for="id_tags" class="form-label">
+                        <i class="fas fa-hashtag"></i> Теги (через запятую)
+                    </label>
+                    <input type="text"
+                           name="tags"
+                           id="id_tags"
+                           class="form-control"
+                           value="{{ form.tags.value|default_if_none:'' }}"
+                           placeholder="например: рассылка, акция, 2025"
+                           maxlength="100">
+                    <div class="form-text">
+                        <i class="fas fa-tags"></i>
+                        Теги помогут быстро найти шаблон при создании рассылки
+                    </div>
+                    {% if form.tags.errors %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.tags.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Владелец (только для админов) -->
+                {% if user.is_superuser %}
+                <div class="form-group">
+                    <label for="id_owner" class="form-label">
+                        <i class="fas fa-user-tie"></i> Владелец шаблона
+                    </label>
+                    <select name="owner" id="id_owner" class="form-select">
+                        {% for user_obj in form.fields.owner.queryset %}
+                            <option value="{{ user_obj.pk }}" {% if form.owner.value == user_obj.pk %}selected{% endif %}>
+                                {{ user_obj.username }} ({{ user_obj.email }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% else %}
+                    <input type="hidden" name="owner" value="{{ user.id }}">
+                {% endif %}
+            </div>
+
+            <!-- Предпросмотр -->
+            <div class="preview-section">
+                <h3 class="section-title">
+                    <i class="fas fa-eye"></i> Предпросмотр
+                </h3>
+
+                <button type="button" class="btn-preview" id="previewBtn">
+                    <i class="fas fa-sync-alt"></i> Обновить предпросмотр
+                </button>
+
+                <div class="preview-card" id="previewCard">
+                    <div class="preview-title">
+                        <i class="fas fa-envelope"></i> <span id="previewSubject">Тема письма</span>
+                    </div>
+                    <div class="preview-content" id="previewContent">
+                        Текст письма появится здесь
+                    </div>
+                    <div class="preview-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-user"></i>
+                            <span id="previewOwner">{{ user.username }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span id="previewDate">{% now "d.m.Y" %}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-tag"></i>
+                            <span id="previewCategory">Категория</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Кнопки действий -->
+            <div class="form-actions">
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <i class="fas fa-save"></i>
+                    {% if object %}Сохранить изменения{% else %}Создать шаблон{% endif %}
+                </button>
+
+                <a href="{% url 'sending_mail:message_list' %}" class="btn-cancel">
+                    <i class="fas fa-times"></i> Отменить
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Список иконок
+        const icons = ['envelope', 'newspaper', 'bullhorn', 'gift', 'percent',
+                      'calendar', 'bell', 'star', 'trophy', 'award', 'rocket',
+                      'shopping-cart', 'credit-card', 'gem', 'crown'];
+
+        // Обновление счетчиков символов
+        function updateCharCounters() {
+            const subjectLength = $('#id_topik').val().length;
+            const textLength = $('#id_text').val().length;
+
+            $('#subjectLength').text(subjectLength);
+            $('#textLength').text(textLength);
+
+            // Подсветка при приближении к лимиту
+            $('#subjectLength').parent().toggleClass('warning', subjectLength > 120);
+            $('#subjectLength').parent().toggleClass('danger', subjectLength > 140);
+
+            $('#textLength').parent().toggleClass('warning', textLength > 8000);
+            $('#textLength').parent().toggleClass('danger', textLength > 9500);
+        }
+
+        // Инициализация счетчиков
+        updateCharCounters();
+        $('#id_topik, #id_text').on('input', updateCharCounters);
+
+        // Выбор иконки
+        $('.icon-option').click(function() {
+            $('.icon-option').removeClass('selected');
+            $(this).addClass('selected');
+            const icon = $(this).data('icon');
+            $('#id_icon').val(icon);
+        });
+
+        // Если иконка не выбрана, выбираем первую
+        if (!$('.icon-option.selected').length && icons.length > 0) {
+            $('.icon-option:first').addClass('selected');
+            $('#id_icon').val(icons[0]);
+        }
+
+        // Выбор категории
+        $('.category-tag').click(function() {
+            $('.category-tag').removeClass('tag-selected');
+            $(this).addClass('tag-selected');
+            const category = $(this).data('category');
+            $('#id_category').val(category);
+        });
+
+        // Вставка переменных в текст
+        $('.variable-item').click(function() {
+            const variable = $(this).data('variable');
+            const textarea = $('#id_text');
+            const start = textarea[0].selectionStart;
+            const end = textarea[0].selectionEnd;
+            const text = textarea.val();
+            const newText = text.substring(0, start) + variable + text.substring(end);
+
+            textarea.val(newText);
+            textarea.focus();
+            textarea[0].selectionStart = textarea[0].selectionEnd = start + variable.length;
+
+            // Анимация вставки
+            $(this).css({
+                'transform': 'scale(1.1)',
+                'box-shadow': '0 5px 15px rgba(67, 97, 238, 0.3)'
+            });
+
+            setTimeout(() => {
+                $(this).css({
+                    'transform': '',
+                    'box-shadow': ''
+                });
+            }, 300);
+
+            updateCharCounters();
+            updatePreview();
+        });
+
+        // Обновление предпросмотра
+        function updatePreview() {
+            const subject = $('#id_topik').val() || 'Тема письма';
+            const text = $('#id_text').val() || 'Текст письма появится здесь';
+            const category = $('#id_category').val();
+            const owner = $('#id_owner option:selected').text() || '{{ user.username }}';
+
+            $('#previewSubject').text(subject);
+            $('#previewContent').html(text.replace(/\n/g, '<br>'));
+            $('#previewOwner').text(owner.split(' (')[0]);
+
+            // Определение категории для отображения
+            let categoryText = 'Другое';
+            switch(category) {
+                case 'promo': categoryText = 'Промоакции'; break;
+                case 'news': categoryText = 'Новости'; break;
+                case 'notification': categoryText = 'Уведомления'; break;
+                case 'welcome': categoryText = 'Приветственные'; break;
+            }
+            $('#previewCategory').text(categoryText);
+
+            // Показываем предпросмотр, если есть текст
+            if (text.trim()) {
+                $('#previewCard').show();
+            }
+        }
+
+        // Инициализация предпросмотра
+        updatePreview();
+
+        // Обновление предпросмотра при изменении полей
+        $('#id_topik, #id_text, #id_category, #id_owner').on('input change', updatePreview);
+
+        // Кнопка обновления предпросмотра
+        $('#previewBtn').click(updatePreview);
+
+        // Использование готовых примеров
+        window.useExample = function(type) {
+            let subject = '';
+            let text = '';
+
+            switch(type) {
+                case 'welcome':
+                    subject = 'Добро пожаловать в наш сервис!';
+                    text = 'Уважаемый {{first_name}} {{last_name}},\n\n' +
+                           'Мы рады приветствовать вас в нашем сервисе!\n\n' +
+                           'Спасибо, что выбрали нас. Теперь вы получите доступ ко всем возможностям:\n' +
+                           '✓ Быстрые рассылки\n' +
+                           '✓ Современные шаблоны\n' +
+                           '✓ Детальная аналитика\n\n' +
+                           'Если у вас есть вопросы, не стесняйтесь обращаться в поддержку.\n\n' +
+                           'С уважением,\nКоманда сервиса';
+                    break;
+
+                case 'promo':
+                    subject = '🎁 Специальное предложение для вас!';
+                    text = 'Приветствуем, {{first_name}}!\n\n' +
+                           'У нас отличные новости! Только для вас действует специальная акция:\n\n' +
+                           '🔥 Скидка 20% на все рассылки\n' +
+                           '🔥 Бесплатный тестовый период\n' +
+                           '🔥 Персональный менеджер\n\n' +
+                           'Акция действует до конца месяца. Успейте воспользоваться!\n\n' +
+                           'Подробности: https://ваш-сайт.ру/акция\n\n' +
+                           'С наилучшими пожеланиями,\n{{company}}';
+                    break;
+
+                case 'notification':
+                    subject = '📢 Важное уведомление';
+                    text = 'Уважаемый пользователь,\n\n' +
+                           'Информируем вас о плановых работах на сервере:\n\n' +
+                           '📅 Дата: {{current_date}}\n' +
+                           '⏰ Время: с 02:00 до 06:00\n' +
+                           '⚡ Влияние: возможны перебои в работе\n\n' +
+                           'Приносим извинения за временные неудобства.\n\n' +
+                           'С уважением,\nТехническая поддержка';
+                    break;
+            }
+
+            $('#id_topik').val(subject);
+            $('#id_text').val(text);
+
+            // Выбор соответствующей категории
+            $('.category-tag[data-category="' + type + '"]').click();
+
+            updateCharCounters();
+            updatePreview();
+
+            // Анимация
+            $('.example-item[data-example="' + type + '"]').css({
+                'background': 'rgba(67, 97, 238, 0.1)',
+                'border-color': '#4361ee'
+            });
+
+            setTimeout(() => {
+                $('.example-item[data-example="' + type + '"]').css({
+                    'background': '',
+                    'border-color': ''
+                });
+            }, 1000);
+
+            toastr.success('Шаблон загружен', 'Успех');
+        };
+
+        // Валидация формы
+        $('#templateForm').submit(function(e) {
+            const subject = $('#id_topik').val().trim();
+            const text = $('#id_text').val().trim();
+
+            // Проверка темы
+            if (!subject) {
+                e.preventDefault();
+                toastr.error('Введите тему письма', 'Ошибка');
+                $('#id_topik').focus().addClass('is-invalid');
+                return false;
+            }
+
+            if (subject.length > 150) {
+                e.preventDefault();
+                toastr.error('Тема письма не должна превышать 150 символов', 'Ошибка');
+                return false;
+            }
+
+            // Проверка текста
+            if (!text) {
+                e.preventDefault();
+                toastr.error('Введите текст письма', 'Ошибка');
+                $('#id_text').focus().addClass('is-invalid');
+                return false;
+            }
+
+            if (text.length > 10000) {
+                e.preventDefault();
+                toastr.error('Текст письма не должен превышать 10000 символов', 'Ошибка');
+                return false;
+            }
+
+            // Показать индикатор загрузки
+            $('#submitBtn').html('<i class="fas fa-spinner fa-spin"></i> Сохранение...').prop('disabled', true);
+
+            return true;
+        });
+
+        // Автофокус на поле темы
+        $('#id_topik').focus();
+
+        // Сохранение формы по Ctrl+Enter
+        $(document).keydown(function(e) {
+            if (e.ctrlKey && e.keyCode === 13) {
+                $('#submitBtn').click();
+            }
+        });
+
+        // Автоматическое обновление предпросмотра каждые 2 секунды
+        let previewInterval = setInterval(updatePreview, 2000);
+
+        // Остановка интервала при уходе со страницы
+        $(window).on('beforeunload', function() {
+            clearInterval(previewInterval);
+        });
+
+        // Подсказки при наведении на поля
+        $('.form-control').hover(
+            function() {
+                $(this).parent().find('.form-text').slideDown();
+            },
+            function() {
+                $(this).parent().find('.form-text').slideUp();
+            }
+        );
+
+        // Инициализация значений, если форма уже заполнена
+        {% if form.category.value %}
+            $('.category-tag[data-category="{{ form.category.value }}"]').click();
+        {% endif %}
+
+        {% if form.icon.value %}
+            $('.icon-option[data-icon="{{ form.icon.value }}"]').click();
+        {% endif %}
+    });
+</script>
+{% endblock %}

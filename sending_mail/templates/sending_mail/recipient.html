@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Получатель рассылки{% endblock %}
+
+{% block body %}
+{% include 'header.html' %}
+<div class="class=container-fluid">
+    <h4 class="text-center card-title">Адрес получателя: {{recipient.email}}</h4>
+    <div class="class=container-fluid" style="border: solid 1px; background: wheat;">
+        <p>ФИО получателя: {{recipient.recipient_name}}</p>
+        <p>Комментарий: {{recipient.comment|default:"Нет комментария"}}</p>
+    </div>
+<div class="btn-group d-flex flex-row gap-1" role="group" style="min-width: 100px; margin: 10px;">
+{% if user == recipient.owner %}
+  <a href="{% url 'sending_mail:recipient_edit' recipient.pk %}" class="btn btn-warning w-100 py-1">Редактировать</a>
+  <a href="{% url 'sending_mail:recipient_delete' recipient.pk %}" type="button" class="btn btn-danger w-100 py-1">Удалить</a>
+{% endif %}
+  <a href="{% url 'sending_mail:recipient_list' %}" type="button" class="btn btn-success w-100 py-1">Вернуться к списку получателей рассылки</a>
+</div>
+</div>
+
+{% endblock %}

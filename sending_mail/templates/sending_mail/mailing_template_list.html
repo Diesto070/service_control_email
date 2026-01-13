@@ -1,0 +1,1361 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Шаблоны писем{% endblock %}
+
+{% block body %}
+{% include 'header.html' %}
+
+<style>
+    .templates-container {
+        padding: 30px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        margin-bottom: 30px;
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .header-title {
+        color: #2c3e50;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .header-title i {
+        color: #4361ee;
+        font-size: 2rem;
+    }
+
+    .stats-cards {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        border: 1px solid #eef2f7;
+        min-width: 150px;
+    }
+
+    .stat-value {
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: #2c3e50;
+        line-height: 1.2;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 25px;
+    }
+
+    .btn-create {
+        background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        border: none;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+    }
+
+    .btn-create:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-import {
+        background: white;
+        border: 2px solid #4361ee;
+        color: #4361ee;
+        padding: 12px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+    }
+
+    .btn-import:hover {
+        background: #4361ee;
+        color: white;
+        text-decoration: none;
+    }
+
+    .view-toggle {
+        display: flex;
+        background: white;
+        border-radius: 10px;
+        padding: 5px;
+        border: 2px solid #eef2f7;
+        margin-bottom: 25px;
+        max-width: 300px;
+    }
+
+    .view-btn {
+        flex: 1;
+        padding: 10px 20px;
+        border: none;
+        background: none;
+        color: #6c757d;
+        font-weight: 500;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .view-btn.active {
+        background: #4361ee;
+        color: white;
+    }
+
+    .filters-section {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        border: 1px solid #eef2f7;
+    }
+
+    .filters-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .filters-title {
+        color: #4361ee;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        align-items: end;
+    }
+
+    .filter-group {
+        margin-bottom: 0;
+    }
+
+    .filter-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 5px;
+    }
+
+    .filter-input, .filter-select {
+        border: 2px solid #e0e6ed;
+        border-radius: 8px;
+        padding: 10px 15px;
+        width: 100%;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .filter-input:focus, .filter-select:focus {
+        border-color: #4361ee;
+        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.15);
+        outline: none;
+    }
+
+    /* Вид сетки (по умолчанию) */
+    .templates-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+
+    .template-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        border: 1px solid #eef2f7;
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .template-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+        border-color: #4361ee;
+    }
+
+    .template-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        z-index: 10;
+    }
+
+    .badge-popular { background: #ff6b6b; color: white; }
+    .badge-new { background: #4ecdc4; color: white; }
+    .badge-default { background: #ffeaa7; color: #2d3436; }
+
+    .template-header {
+        padding: 25px 25px 15px;
+        border-bottom: 2px solid #f0f4f8;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        min-height: 120px;
+    }
+
+    .template-icon {
+        width: 50px;
+        height: 50px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+        font-size: 1.5rem;
+    }
+
+    .template-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .template-owner {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin-top: 10px;
+    }
+
+    .template-owner i {
+        font-size: 1rem;
+    }
+
+    .template-body {
+        padding: 20px;
+        flex: 1;
+    }
+
+    .template-preview {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        max-height: 150px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .template-preview::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 30px;
+        background: linear-gradient(to bottom, transparent, #f8f9fa);
+    }
+
+    .template-preview-text {
+        color: #495057;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .template-meta {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .meta-label {
+        font-size: 0.75rem;
+        color: #868e96;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .meta-value {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #495057;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .meta-value i {
+        color: #4361ee;
+        font-size: 0.9rem;
+    }
+
+    .template-footer {
+        padding: 15px 20px;
+        background: #f8fafc;
+        border-top: 2px solid #f0f4f8;
+    }
+
+    .template-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .template-btn {
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: none;
+        flex: 1;
+        justify-content: center;
+        min-width: 100px;
+    }
+
+    .btn-preview { background: rgba(52, 152, 219, 0.1); color: #3498db; border: 1px solid rgba(52, 152, 219, 0.2); }
+    .btn-preview:hover { background: #3498db; color: white; text-decoration: none; }
+
+    .btn-edit { background: rgba(243, 156, 18, 0.1); color: #f39c12; border: 1px solid rgba(243, 156, 18, 0.2); }
+    .btn-edit:hover { background: #f39c12; color: white; text-decoration: none; }
+
+    .btn-delete { background: rgba(231, 76, 60, 0.1); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.2); }
+    .btn-delete:hover { background: #e74c3c; color: white; text-decoration: none; }
+
+    .btn-use { background: rgba(46, 204, 113, 0.1); color: #27ae60; border: 1px solid rgba(46, 204, 113, 0.2); }
+    .btn-use:hover { background: #27ae60; color: white; text-decoration: none; }
+
+    .btn-duplicate { background: rgba(155, 89, 182, 0.1); color: #9b59b6; border: 1px solid rgba(155, 89, 182, 0.2); }
+    .btn-duplicate:hover { background: #9b59b6; color: white; text-decoration: none; }
+
+    /* Вид таблицы */
+    .templates-table-container {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+        border: 1px solid #eef2f7;
+        display: none;
+    }
+
+    .templates-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .templates-table thead {
+        background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    }
+
+    .templates-table thead th {
+        color: white;
+        font-weight: 600;
+        padding: 20px;
+        border: none;
+        text-align: left;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .templates-table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f0f4f8;
+    }
+
+    .templates-table tbody tr:hover {
+        background: rgba(67, 97, 238, 0.03);
+    }
+
+    .templates-table tbody td {
+        padding: 18px 20px;
+        vertical-align: middle;
+        border: none;
+        color: #495057;
+        font-size: 0.95rem;
+    }
+
+    .template-cell-title {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .template-cell-preview {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #868e96;
+        font-size: 0.9rem;
+    }
+
+    .template-cell-owner {
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .template-cell-owner i {
+        color: #4361ee;
+    }
+
+    .template-cell-actions {
+        width: 250px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        grid-column: 1 / -1;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+
+    .empty-state-title {
+        color: #6c757d;
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+    }
+
+    .empty-state-text {
+        color: #adb5bd;
+        margin-bottom: 25px;
+    }
+
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .pagination {
+        display: flex;
+        gap: 5px;
+    }
+
+    .page-link {
+        border: 2px solid #e0e6ed;
+        color: #495057;
+        border-radius: 8px;
+        padding: 8px 15px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .page-link:hover {
+        background: #4361ee;
+        color: white;
+        border-color: #4361ee;
+        text-decoration: none;
+    }
+
+    .page-link.active {
+        background: #4361ee;
+        color: white;
+        border-color: #4361ee;
+    }
+
+    .category-tags {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 15px;
+    }
+
+    .category-tag {
+        padding: 4px 10px;
+        background: rgba(67, 97, 238, 0.1);
+        color: #4361ee;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .category-tag.promo { background: rgba(255, 107, 107, 0.1); color: #ff6b6b; }
+    .category-tag.news { background: rgba(77, 171, 247, 0.1); color: #4dabf7; }
+    .category-tag.notification { background: rgba(130, 201, 30, 0.1); color: #82c91e; }
+    .category-tag.welcome { background: rgba(250, 176, 5, 0.1); color: #fab005; }
+
+    /* Модальное окно предпросмотра */
+    .preview-modal .modal-content {
+        border-radius: 15px;
+        border: none;
+    }
+
+    .preview-modal .modal-header {
+        background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 20px 30px;
+        border: none;
+    }
+
+    .preview-modal .modal-body {
+        padding: 30px;
+        background: #f8fafc;
+    }
+
+    .preview-content {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        max-height: 400px;
+        overflow-y: auto;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 992px) {
+        .templates-grid {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .templates-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .header-content {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .stats-cards {
+            justify-content: center;
+        }
+
+        .filter-form {
+            grid-template-columns: 1fr;
+        }
+
+        .template-meta {
+            grid-template-columns: 1fr;
+        }
+
+        .template-actions {
+            flex-direction: column;
+        }
+
+        .template-btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="templates-container">
+    <!-- Заголовок страницы -->
+    <div class="page-header">
+        <div class="header-content">
+            <div>
+                <h1 class="header-title">
+                    <i class="fas fa-envelope-open-text"></i> Шаблоны писем
+                </h1>
+                <p class="text-muted mb-0">Библиотека готовых шаблонов для email-рассылок</p>
+            </div>
+
+            <!-- Статистика -->
+            <div class="stats-cards">
+                <div class="stat-card" style="border-left: 4px solid #4361ee;">
+                    <div class="stat-value">{{ total_templates|default:"0" }}</div>
+                    <div class="stat-label">Всего шаблонов</div>
+                </div>
+                <div class="stat-card" style="border-left: 4px solid #2ecc71;">
+                    <div class="stat-value">{{ my_templates|default:"0" }}</div>
+                    <div class="stat-label">Мои шаблоны</div>
+                </div>
+                <div class="stat-card" style="border-left: 4px solid #f39c12;">
+                    <div class="stat-value">{{ used_count|default:"0" }}</div>
+                    <div class="stat-label">Использовано</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопки действий -->
+        <div class="action-buttons">
+            <a href="{% url 'sending_mail:message_new' %}" class="btn-create">
+                <i class="fas fa-plus-circle"></i> Создать новый шаблон
+            </a>
+
+            <button type="button" class="btn-import" data-bs-toggle="modal" data-bs-target="#importModal">
+                <i class="fas fa-file-import"></i> Импорт шаблона
+            </button>
+        </div>
+
+        <!-- Переключение вида -->
+        <div class="view-toggle">
+            <button class="view-btn active" id="gridViewBtn">
+                <i class="fas fa-th-large"></i> Сетка
+            </button>
+            <button class="view-btn" id="tableViewBtn">
+                <i class="fas fa-list"></i> Таблица
+            </button>
+        </div>
+    </div>
+
+    <!-- Фильтры поиска -->
+    <div class="filters-section">
+        <div class="filters-header">
+            <h3 class="filters-title">
+                <i class="fas fa-filter"></i> Поиск шаблонов
+            </h3>
+            <button type="button" class="btn btn-sm btn-link text-decoration-none" id="clearFilters">
+                <i class="fas fa-times"></i> Сбросить фильтры
+            </button>
+        </div>
+
+        <form method="get" id="filterForm" class="filter-form">
+            <div class="filter-group">
+                <label class="filter-label">Поиск по теме</label>
+                <input type="text"
+                       name="search"
+                       class="filter-input"
+                       placeholder="Введите тему письма..."
+                       value="{{ request.GET.search|default_if_none:'' }}">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Категория</label>
+                <select name="category" class="filter-select">
+                    <option value="">Все категории</option>
+                    <option value="promo" {% if request.GET.category == "promo" %}selected{% endif %}>Промоакции</option>
+                    <option value="news" {% if request.GET.category == "news" %}selected{% endif %}>Новости</option>
+                    <option value="notification" {% if request.GET.category == "notification" %}selected{% endif %}>Уведомления</option>
+                    <option value="welcome" {% if request.GET.category == "welcome" %}selected{% endif %}>Приветственные</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Сортировка</label>
+                <select name="sort" class="filter-select">
+                    <option value="newest" {% if request.GET.sort == "newest" %}selected{% endif %}>Сначала новые</option>
+                    <option value="oldest" {% if request.GET.sort == "oldest" %}selected{% endif %}>Сначала старые</option>
+                    <option value="popular" {% if request.GET.sort == "popular" %}selected{% endif %}>Популярные</option>
+                    <option value="name" {% if request.GET.sort == "name" %}selected{% endif %}>По названию</option>
+                </select>
+            </div>
+
+            {% if user.is_superuser or perms.sending_mail.can_view_all_messages %}
+            <div class="filter-group">
+                <label class="filter-label">Владелец</label>
+                <select name="owner" class="filter-select">
+                    <option value="">Все владельцы</option>
+                    <option value="me" {% if request.GET.owner == "me" %}selected{% endif %}>Только мои</option>
+                    {% for owner in owners %}
+                        <option value="{{ owner.id }}" {% if request.GET.owner == owner.id|stringformat:"s" %}selected{% endif %}>
+                            {{ owner.username }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <div class="filter-group">
+                <button type="submit" class="btn btn-primary" style="height: 42px;">
+                    <i class="fas fa-search me-2"></i> Найти
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Вид сетки -->
+    <div class="templates-grid" id="gridView">
+        {% for message in messages %}
+            {% if user == message.owner or perms.sending_mail.can_view_message %}
+            <div class="template-card">
+                <!-- Бейдж -->
+                {% if message.is_popular %}
+                <span class="template-badge badge-popular">
+                    <i class="fas fa-fire"></i> Популярный
+                </span>
+                {% elif message.is_new %}
+                <span class="template-badge badge-new">
+                    <i class="fas fa-star"></i> Новый
+                </span>
+                {% elif message.is_default %}
+                <span class="template-badge badge-default">
+                    <i class="fas fa-certificate"></i> По умолчанию
+                </span>
+                {% endif %}
+
+                <!-- Заголовок -->
+                <div class="template-header">
+                    <div class="template-icon">
+                        <i class="fas fa-{{ message.icon|default:'envelope' }}"></i>
+                    </div>
+                    <h3 class="template-title" title="{{ message.topik }}">
+                        {{ message.topik|truncatechars:60 }}
+                    </h3>
+
+                    <div class="template-owner">
+                        <i class="fas fa-user"></i>
+                        <span>{{ message.owner.username }}</span>
+                    </div>
+                </div>
+
+                <!-- Тело карточки -->
+                <div class="template-body">
+                    <!-- Предпросмотр -->
+                    <div class="template-preview">
+                        <p class="template-preview-text">
+                            {{ message.text|truncatechars:200|default:"Текст письма отсутствует" }}
+                        </p>
+                    </div>
+
+                    <!-- Мета-информация -->
+                    <div class="template-meta">
+                        <div class="meta-item">
+                            <div class="meta-label">Создан</div>
+                            <div class="meta-value">
+                                <i class="fas fa-calendar"></i>
+                                {{ message.created_at|date:"d.m.Y" }}
+                            </div>
+                        </div>
+
+                        <div class="meta-item">
+                            <div class="meta-label">Использован</div>
+                            <div class="meta-value">
+                                <i class="fas fa-paper-plane"></i>
+                                {{ message.usage_count|default:"0" }} раз
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Категории -->
+                    <div class="category-tags">
+                        {% if message.category %}
+                        <span class="category-tag {{ message.category }}">
+                            {{ message.get_category_display }}
+                        </span>
+                        {% endif %}
+                        {% if message.tags %}
+                            {% for tag in message.tags_list %}
+                            <span class="category-tag">{{ tag }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Футер с кнопками -->
+                <div class="template-footer">
+                    <div class="template-actions">
+                        <button type="button"
+                                class="template-btn btn-preview"
+                                data-bs-toggle="modal"
+                                data-bs-target="#previewModal"
+                                data-title="{{ message.topik }}"
+                                data-content="{{ message.text }}">
+                            <i class="fas fa-eye"></i> Просмотр
+                        </button>
+
+                        {% if user == message.owner %}
+                        <a href="{% url 'sending_mail:message_edit' message.pk %}"
+                           class="template-btn btn-edit">
+                            <i class="fas fa-edit"></i> Редактировать
+                        </a>
+
+                        <a href="{% url 'sending_mail:message_delete' message.pk %}"
+                           class="template-btn btn-delete"
+                           onclick="return confirm('Удалить шаблон \"{{ message.topik }}\"?')">
+                            <i class="fas fa-trash-alt"></i> Удалить
+                        </a>
+                        {% endif %}
+
+                        <a href="{% url 'sending_mail:mailing_new' %}?template={{ message.pk }}"
+                           class="template-btn btn-use">
+                            <i class="fas fa-play-circle"></i> Использовать
+                        </a>
+
+                        <button type="button"
+                                class="template-btn btn-duplicate"
+                                onclick="duplicateTemplate({{ message.pk }})">
+                            <i class="fas fa-copy"></i> Дублировать
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% empty %}
+            <!-- Состояние пустого списка -->
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <h3 class="empty-state-title">Шаблоны не найдены</h3>
+                <p class="empty-state-text">
+                    {% if request.GET %}
+                        Попробуйте изменить параметры поиска
+                    {% else %}
+                        Создайте первый шаблон, чтобы начать работу
+                    {% endif %}
+                </p>
+                <a href="{% url 'sending_mail:message_new' %}" class="btn-create">
+                    <i class="fas fa-plus-circle"></i> Создать шаблон
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Вид таблицы -->
+    <div class="templates-table-container" id="tableView">
+        {% if messages %}
+            <table class="templates-table">
+                <thead>
+                    <tr>
+                        <th>Название шаблона</th>
+                        <th>Предпросмотр</th>
+                        <th>Владелец</th>
+                        <th>Создан</th>
+                        <th>Использован</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for message in messages %}
+                    {% if user == message.owner or perms.sending_mail.can_view_message %}
+                    <tr>
+                        <td>
+                            <div class="template-cell-title">
+                                {{ message.topik }}
+                                {% if message.is_popular %}
+                                    <span class="badge bg-danger ms-2">Популярный</span>
+                                {% endif %}
+                            </div>
+                            {% if message.category %}
+                                <small class="text-muted">{{ message.get_category_display }}</small>
+                            {% endif %}
+                        </td>
+                        <td class="template-cell-preview" title="{{ message.text }}">
+                            {{ message.text|truncatechars:80|default:"Нет текста" }}
+                        </td>
+                        <td class="template-cell-owner">
+                            <i class="fas fa-user"></i>
+                            {{ message.owner.username }}
+                        </td>
+                        <td>
+                            {{ message.created_at|date:"d.m.Y" }}
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ message.usage_count|default:"0" }}</span>
+                        </td>
+                        <td class="template-cell-actions">
+                            <div class="template-actions" style="flex-wrap: nowrap;">
+                                <button type="button"
+                                        class="template-btn btn-preview btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#previewModal"
+                                        data-title="{{ message.topik }}"
+                                        data-content="{{ message.text }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+
+                                {% if user == message.owner %}
+                                <a href="{% url 'sending_mail:message_edit' message.pk %}"
+                                   class="template-btn btn-edit btn-sm">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+
+                                <a href="{% url 'sending_mail:message_delete' message.pk %}"
+                                   class="template-btn btn-delete btn-sm"
+                                   onclick="return confirm('Удалить шаблон?')">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                                {% endif %}
+
+                                <a href="{% url 'sending_mail:mailing_new' %}?template={{ message.pk }}"
+                                   class="template-btn btn-use btn-sm">
+                                    <i class="fas fa-play-circle"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+
+    <!-- Пагинация -->
+    {% if is_paginated %}
+    <div class="pagination-container">
+        <nav>
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Модальное окно предпросмотра -->
+<div class="modal fade preview-modal" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye me-2"></i>Предпросмотр шаблона
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h4 id="previewModalTitle" class="mb-3"></h4>
+                <div class="preview-content" id="previewModalContent">
+                    <!-- Содержимое будет загружено динамически -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Закрыть
+                </button>
+                <button type="button" class="btn btn-primary" id="useTemplateBtn">
+                    <i class="fas fa-play-circle me-2"></i>Использовать этот шаблон
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно импорта -->
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-import me-2"></i>Импорт шаблонов
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <h6><i class="fas fa-file-alt me-2"></i>Импорт из файла</h6>
+                            <p class="text-muted small mb-3">Поддерживаются форматы: JSON, CSV</p>
+                            <form id="importFileForm" enctype="multipart/form-data">
+                                <div class="mb-3">
+                                    <label for="importFile" class="form-label">Выберите файл</label>
+                                    <input class="form-control" type="file" id="importFile" accept=".json,.csv">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Категория по умолчанию</label>
+                                    <select class="form-select" id="importCategory">
+                                        <option value="">Не указывать</option>
+                                        <option value="promo">Промоакции</option>
+                                        <option value="news">Новости</option>
+                                        <option value="notification">Уведомления</option>
+                                        <option value="welcome">Приветственные</option>
+                                    </select>
+                                </div>
+                                <button type="button" class="btn btn-primary" id="uploadFileBtn">
+                                    <i class="fas fa-upload me-2"></i>Загрузить файл
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <h6><i class="fas fa-clipboard me-2"></i>Импорт из текста</h6>
+                            <p class="text-muted small mb-3">Вставьте JSON или CSV данные</p>
+                            <div class="mb-3">
+                                <label for="importText" class="form-label">Данные для импорта</label>
+                                <textarea class="form-control" id="importText" rows="6" placeholder='Пример JSON:
+[
+  {
+    "topik": "Новогодняя акция",
+    "text": "Специальное предложение...",
+    "category": "promo"
+  }
+]'></textarea>
+                            </div>
+                            <button type="button" class="btn btn-primary" id="uploadTextBtn">
+                                <i class="fas fa-paste me-2"></i>Импортировать из текста
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Формат данных:</strong> Тема (topik), Текст (text), Категория (category, опционально)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Переключение между видами
+        $('#gridViewBtn').click(function() {
+            $(this).addClass('active');
+            $('#tableViewBtn').removeClass('active');
+            $('#gridView').show();
+            $('#tableView').hide();
+            localStorage.setItem('templateView', 'grid');
+        });
+
+        $('#tableViewBtn').click(function() {
+            $(this).addClass('active');
+            $('#gridViewBtn').removeClass('active');
+            $('#gridView').hide();
+            $('#tableView').show();
+            localStorage.setItem('templateView', 'table');
+        });
+
+        // Восстановление сохраненного вида
+        const savedView = localStorage.getItem('templateView') || 'grid';
+        if (savedView === 'table') {
+            $('#tableViewBtn').click();
+        }
+
+        // Предпросмотр шаблона
+        $('#previewModal').on('show.bs.modal', function(event) {
+            const button = $(event.relatedTarget);
+            const title = button.data('title');
+            const content = button.data('content');
+
+            $('#previewModalTitle').text(title);
+            $('#previewModalContent').html(content.replace(/\n/g, '<br>'));
+
+            // Установка обработчика для кнопки "Использовать"
+            $('#useTemplateBtn').off('click').on('click', function() {
+                const templateId = button.closest('.template-card').find('.btn-use').attr('href').split('=')[1];
+                window.location.href = `{% url 'sending_mail:mailing_new' %}?template=${templateId}`;
+            });
+        });
+
+        // Дублирование шаблона
+        window.duplicateTemplate = function(templateId) {
+            if (confirm('Создать копию этого шаблона?')) {
+                $.ajax({
+                    url: `{% url 'sending_mail:message_duplicate' 0 %}`.replace('0', templateId),
+                    type: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success('Шаблон успешно скопирован', 'Успех');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            toastr.error(response.error || 'Ошибка при копировании', 'Ошибка');
+                        }
+                    },
+                    error: function() {
+                        toastr.error('Ошибка при копировании', 'Ошибка');
+                    }
+                });
+            }
+        };
+
+        // Импорт из файла
+        $('#uploadFileBtn').click(function() {
+            const fileInput = $('#importFile')[0];
+            const category = $('#importCategory').val();
+
+            if (!fileInput.files.length) {
+                toastr.error('Выберите файл для импорта', 'Ошибка');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            if (category) {
+                formData.append('category', category);
+            }
+
+            $(this).html('<i class="fas fa-spinner fa-spin me-2"></i>Импорт...').prop('disabled', true);
+
+            $.ajax({
+                url: '{% url "sending_mail:import_templates" %}',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(`Импортировано ${response.count} шаблонов`, 'Успех');
+                        $('#importModal').modal('hide');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        toastr.error(response.error || 'Ошибка при импорте', 'Ошибка');
+                        $('#uploadFileBtn').html('<i class="fas fa-upload me-2"></i>Загрузить файл').prop('disabled', false);
+                    }
+                },
+                error: function() {
+                    toastr.error('Ошибка при импорте', 'Ошибка');
+                    $('#uploadFileBtn').html('<i class="fas fa-upload me-2"></i>Загрузить файл').prop('disabled', false);
+                }
+            });
+        });
+
+        // Импорт из текста
+        $('#uploadTextBtn').click(function() {
+            const text = $('#importText').val().trim();
+
+            if (!text) {
+                toastr.error('Введите данные для импорта', 'Ошибка');
+                return;
+            }
+
+            $(this).html('<i class="fas fa-spinner fa-spin me-2"></i>Импорт...').prop('disabled', true);
+
+            $.ajax({
+                url: '{% url "sending_mail:import_templates_text" %}',
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    text: text,
+                    category: $('#importCategory').val()
+                }),
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(`Импортировано ${response.count} шаблонов`, 'Успех');
+                        $('#importModal').modal('hide');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        toastr.error(response.error || 'Ошибка при импорте', 'Ошибка');
+                        $('#uploadTextBtn').html('<i class="fas fa-paste me-2"></i>Импортировать из текста').prop('disabled', false);
+                    }
+                },
+                error: function() {
+                    toastr.error('Ошибка при импорте', 'Ошибка');
+                    $('#uploadTextBtn').html('<i class="fas fa-paste me-2"></i>Импортировать из текста').prop('disabled', false);
+                }
+            });
+        });
+
+        // Быстрый поиск
+        let searchTimeout;
+        $('.filter-input').on('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                $('#filterForm').submit();
+            }, 500);
+        });
+
+        // Сброс фильтров
+        $('#clearFilters').click(function() {
+            window.location.href = '{% url "sending_mail:message_list" %}';
+        });
+
+        // Функция для получения CSRF токена
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Обновление статистики
+        function updateStats() {
+            $.ajax({
+                url: '{% url "sending_mail:message_stats" %}',
+                type: 'GET',
+                success: function(data) {
+                    if (data.success) {
+                        $('.stat-value').eq(0).text(data.total || '0');
+                        $('.stat-value').eq(1).text(data.my_templates || '0');
+                        $('.stat-value').eq(2).text(data.used_count || '0');
+                    }
+                }
+            });
+        }
+
+        // Обновление каждые 60 секунд
+        setInterval(updateStats, 60000);
+
+        // Предпросмотр по нажатию Enter
+        $(document).keydown(function(e) {
+            if (e.ctrlKey && e.key === 'p') {
+                $('.btn-preview:first').click();
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+
+<!-- Дополнительный CSS для табличного вида -->
+<style>
+    /* Плавная анимация переключения видов */
+    #gridView, #tableView {
+        transition: opacity 0.3s ease;
+    }
+
+    /* Стили для модальных окон */
+    #importModal .modal-body {
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    /* Улучшенные стили для таблицы */
+    .templates-table tbody tr {
+        cursor: pointer;
+    }
+
+    .templates-table tbody tr:hover td {
+        background: rgba(67, 97, 238, 0.05);
+    }
+
+    /* Адаптивность для таблицы */
+    @media (max-width: 768px) {
+        .templates-table-container {
+            overflow-x: auto;
+        }
+
+        .templates-table {
+            min-width: 800px;
+        }
+
+        .template-cell-actions {
+            min-width: 200px;
+        }
+    }
+
+    /* Эффекты загрузки */
+    .loading {
+        position: relative;
+    }
+
+    .loading::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255,255,255,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #4361ee;
+        font-size: 1.5rem;
+    }
+</style>
+{% endblock %}

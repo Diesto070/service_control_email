@@ -1,0 +1,476 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная страница - Сервис рассылок{% endblock %}
+
+{% block body %}
+{% load static %}
+
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3a0ca3;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
+        --light-color: #f8f9fa;
+        --dark-color: #343a40;
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 80px 0;
+        margin-bottom: 50px;
+        border-radius: 0 0 30px 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+    }
+
+    .stat-card-success::before {
+        background: var(--success-color);
+    }
+
+    .stat-card-warning::before {
+        background: var(--warning-color);
+    }
+
+    .stat-card-danger::before {
+        background: var(--danger-color);
+    }
+
+    .stat-card-info::before {
+        background: var(--info-color);
+    }
+
+    .stat-icon {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        opacity: 0.8;
+    }
+
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 1.1rem;
+        color: #6c757d;
+        margin-bottom: 15px;
+    }
+
+    .feature-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        border: 1px solid #eef2f7;
+        height: 100%;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        border-color: var(--primary-color);
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin-bottom: 20px;
+    }
+
+    .quick-actions {
+        margin-top: 50px;
+        margin-bottom: 50px;
+    }
+
+    .action-btn {
+        padding: 20px;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        text-decoration: none;
+    }
+
+    .action-btn i {
+        font-size: 1.2rem;
+    }
+
+    .recent-activity {
+        background: var(--light-color);
+        border-radius: 15px;
+        padding: 30px;
+        margin-top: 30px;
+    }
+
+    .activity-item {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .pulse-animation {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .welcome-message {
+        animation: fadeInUp 1s ease;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+{% include 'header.html' %}
+
+<!-- Герой секция -->
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-4 welcome-message">
+                    {% if user.is_authenticated %}
+                        Добро пожаловать, {{ user.username }}! 👋
+                    {% else %}
+                        Добро пожаловать в сервис рассылок!
+                    {% endif %}
+                </h1>
+                <p class="lead mb-4">
+                    Профессиональный сервис для управления email-рассылками.
+                    Отправляйте сообщения эффективно и отслеживайте результаты.
+                </p>
+                {% if not user.is_authenticated %}
+                <div class="d-flex gap-3">
+                    <a href="{% url 'user:register' %}" class="btn btn-light btn-lg px-4">
+                        <i class="fas fa-user-plus me-2"></i>Начать бесплатно
+                    </a>
+                    <a href="{% url 'user:login' %}" class="btn btn-outline-light btn-lg px-4">
+                        <i class="fas fa-sign-in-alt me-2"></i>Войти
+                    </a>
+                </div>
+                {% else %}
+                <div class="d-flex gap-3">
+                    <form method="post" action="{% url 'user:logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-light btn-lg px-4">
+                            <i class="fas fa-sign-out-alt me-2"></i>Выйти
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-lg-4 d-none d-lg-block">
+                <div class="text-center">
+                    <i class="fas fa-mail-bulk" style="font-size: 12rem; opacity: 0.2;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Основной контент -->
+<div class="container mt-5">
+    <!-- Статистика -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-4">📊 Общая статистика</h2>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card stat-card-success pulse-animation">
+                <div class="stat-icon text-success">
+                    <i class="fas fa-paper-plane"></i>
+                </div>
+                <div class="stat-number text-success">{{ mailings|default:"0" }}</div>
+                <div class="stat-label">Всего рассылок</div>
+                <p class="small text-muted mb-0">За все время работы</p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card stat-card-warning">
+                <div class="stat-icon text-warning">
+                    <i class="fas fa-play-circle"></i>
+                </div>
+                <div class="stat-number text-warning">{{ started_mailings|default:"0" }}</div>
+                <div class="stat-label">Активных рассылок</div>
+                <p class="small text-muted mb-0">Запущено сейчас</p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card stat-card-danger">
+                <div class="stat-icon text-danger">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-number text-danger">{{ recipients|default:"0" }}</div>
+                <div class="stat-label">Уникальных клиентов</div>
+                <p class="small text-muted mb-0">В базе получателей</p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card stat-card-info">
+                <div class="stat-icon text-info">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-number text-info">{{ success_rate|default:"0" }}%</div>
+                <div class="stat-label">Успешных отправок</div>
+                <p class="small text-muted mb-0">Средний показатель</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Быстрые действия (только для авторизованных) -->
+    {% if user.is_authenticated %}
+    <div class="quick-actions">
+        <h2 class="mb-4">Быстрые действия</h2>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <a href="{% url 'sending_mail:mailing_new' %}" class="action-btn btn btn-primary">
+                    <i class="fas fa-plus-circle"></i>
+                    Новая рассылка
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'sending_mail:recipient_new' %}" class="action-btn btn btn-success">
+                    <i class="fas fa-user-plus"></i>
+                    Добавить клиента
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'sending_mail:message_new' %}" class="action-btn btn btn-warning">
+                    <i class="fas fa-envelope"></i>
+                    Создать шаблон
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'sending_mail:mailing_list' %}" class="action-btn btn btn-info">
+                    <i class="fas fa-list"></i>
+                    Все рассылки
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Особенности сервиса -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2 class="mb-4">Почему выбирают нас?</h2>
+        </div>
+
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h4>Быстрая отправка</h4>
+                <p class="text-muted">Мгновенная отправка писем тысячам получателей одновременно</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h4>Детальная аналитика</h4>
+                <p class="text-muted">Отслеживайте открытия, переходы и эффективность рассылок</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h4>Безопасность данных</h4>
+                <p class="text-muted">Шифрование данных и защита от спам-фильтров</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Недавняя активность (для авторизованных) -->
+    {% if user.is_authenticated and recent_activity %}
+    <div class="recent-activity mt-5">
+        <h3 class="mb-4">Недавняя активность</h3>
+        {% for activity in recent_activity %}
+        <div class="activity-item">
+            <div class="activity-icon" style="background: {{ activity.color|default:'#4361ee' }};">
+                <i class="{{ activity.icon|default:'fas fa-bell' }}"></i>
+            </div>
+            <div>
+                <strong>{{ activity.title }}</strong>
+                <p class="mb-0 text-muted">{{ activity.description }}</p>
+                <small class="text-muted">{{ activity.time }}</small>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Для неавторизованных пользователей -->
+    {% if not user.is_authenticated %}
+    <div class="row mt-5">
+        <div class="col-12 text-center py-5">
+            <h2 class="mb-4">Готовы начать?</h2>
+            <p class="lead mb-4">Присоединяйтесь к тысячам компаний, которые уже используют наш сервис</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{% url 'user:register' %}" class="btn btn-primary btn-lg px-5">
+                    <i class="fas fa-rocket me-2"></i>Начать сейчас
+                </a>
+                <a href="#" class="btn btn-outline-primary btn-lg px-5" data-bs-toggle="modal" data-bs-target="#demoModal">
+                    <i class="fas fa-play-circle me-2"></i>Посмотреть демо
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Модальное окно демо -->
+<div class="modal fade" id="demoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Демо-презентация сервиса</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <i class="fas fa-video" style="font-size: 4rem; color: #4361ee; margin-bottom: 20px;"></i>
+                    <h4>Как работает наш сервис</h4>
+                    <p class="text-muted mb-4">Посмотрите короткое видео о возможностях платформы</p>
+                    <div class="ratio ratio-16x9">
+                        Здесь можно вставить iframe с видео
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Анимация счетчиков
+        $('.stat-number').each(function() {
+            var $this = $(this);
+            var target = parseInt($this.text());
+            var current = 0;
+            var increment = target / 50;
+
+            var timer = setInterval(function() {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                $this.text(Math.floor(current));
+            }, 50);
+        });
+
+        // Инициализация tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
+
+        // Показать сообщение приветствия
+        {% if user.is_authenticated %}
+        setTimeout(function() {
+            toastr.success('Добро пожаловать, {{ user.username }}!', 'Приветствие', {
+                timeOut: 3000,
+                positionClass: "toast-top-right"
+            });
+        }, 1000);
+        {% endif %}
+
+        // Обновление статистики каждые 30 секунд
+        function updateStats() {
+            $.ajax({
+                url: '{% url "sending_mail:home" %}',
+                type: 'GET',
+                success: function(data) {
+                    // Здесь можно обновлять данные
+                }
+            });
+        }
+
+        // Автообновление только если пользователь активен
+        let updateInterval;
+        $(window).focus(function() {
+            updateInterval = setInterval(updateStats, 30000);
+        }).blur(function() {
+            clearInterval(updateInterval);
+        });
+
+        // Инициализация
+        if ($(window).is(':focus')) {
+            updateInterval = setInterval(updateStats, 30000);
+        }
+    });
+</script>
+{% endblock %}

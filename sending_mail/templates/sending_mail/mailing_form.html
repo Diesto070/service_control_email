@@ -1,0 +1,674 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if object %}Редактирование рассылки{% else %}Создание рассылки{% endif %}{% endblock %}
+
+{% block body %}
+{% include 'header.html' %}
+
+<style>
+    .mailing-form-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 30px;
+    }
+
+    .form-section {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        border: 1px solid #eef2f7;
+    }
+
+    .section-title {
+        color: #4361ee;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f4f8;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title i {
+        font-size: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-label i {
+        color: #4361ee;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e0e6ed;
+        border-radius: 10px;
+        padding: 12px 15px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #4361ee;
+        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.15);
+    }
+
+    .recipients-list {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 2px solid #e0e6ed;
+        border-radius: 10px;
+        padding: 15px;
+        background: #f8fafc;
+    }
+
+    .recipient-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 15px;
+        background: white;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        border: 1px solid #eef2f7;
+        transition: all 0.2s ease;
+    }
+
+    .recipient-item:hover {
+        border-color: #4361ee;
+        transform: translateX(5px);
+    }
+
+    .recipient-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .recipient-email {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .recipient-name {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .checkbox-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .form-check {
+        padding: 10px 15px;
+        border: 2px solid #e0e6ed;
+        border-radius: 8px;
+        min-width: 150px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .form-check:hover {
+        border-color: #4361ee;
+        background: rgba(67, 97, 238, 0.05);
+    }
+
+    .form-check-input {
+        margin-right: 10px;
+        cursor: pointer;
+        width: 18px;
+        height: 18px;
+    }
+
+    .form-check-input:checked {
+        background-color: #4361ee;
+        border-color: #4361ee;
+    }
+
+    .datetime-inputs {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .datetime-group {
+        position: relative;
+    }
+
+    .datetime-group i {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+    }
+
+    .preview-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 15px;
+        display: none;
+    }
+
+    .preview-card.show {
+        display: block;
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .preview-subject {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .preview-content {
+        background: rgba(255,255,255,0.1);
+        padding: 15px;
+        border-radius: 5px;
+        max-height: 150px;
+        overflow-y: auto;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 2px solid #f0f4f8;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        color: white;
+    }
+
+    .btn-cancel {
+        background: #f8f9fa;
+        border: 2px solid #e0e6ed;
+        color: #6c757d;
+        padding: 12px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-cancel:hover {
+        background: #e9ecef;
+        color: #495057;
+        border-color: #dee2e6;
+    }
+
+    .test-btn {
+        background: #2ecc71;
+        border: none;
+        color: white;
+        padding: 8px 15px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .test-btn:hover {
+        background: #27ae60;
+    }
+
+    .error-message {
+        color: #e74c3c;
+        font-size: 0.875rem;
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .character-count {
+        font-size: 0.85rem;
+        color: #6c757d;
+        text-align: right;
+        margin-top: 5px;
+    }
+
+    .character-count.warning {
+        color: #f39c12;
+    }
+
+    .character-count.danger {
+        color: #e74c3c;
+    }
+
+    .schedule-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        background: rgba(67, 97, 238, 0.1);
+        color: #4361ee;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-left: 10px;
+        font-weight: 500;
+    }
+</style>
+
+<div class="mailing-form-container">
+    <!-- Заголовок -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-2">
+                {% if object %}
+                    <i class="fas fa-edit text-primary"></i> Редактирование рассылки
+                {% else %}
+                    <i class="fas fa-plus-circle text-success"></i> Создание новой рассылки
+                {% endif %}
+            </h1>
+            <p class="text-muted mb-0">
+                {% if object %}
+                    Измените параметры рассылки и сохраните изменения
+                {% else %}
+                    Заполните форму для создания новой email-рассылки
+                {% endif %}
+            </p>
+        </div>
+        <div class="text-end">
+            {% if object %}
+                <span class="badge bg-{{ object.status_color }} fs-6">
+                    {{ object.get_status_display }}
+                </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Форма -->
+    <form method="post" id="mailingForm" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Секция 1: Сообщение -->
+        <div class="form-section">
+            <h3 class="section-title">
+                <i class="fas fa-envelope"></i> Сообщение
+            </h3>
+
+            <div class="form-group">
+                <label for="id_message" class="form-label">
+                    <i class="fas fa-file-alt"></i> Шаблон сообщения *
+                </label>
+                <select name="message" id="id_message" class="form-select" required>
+                    <option value="">Выберите шаблон сообщения</option>
+                    {% for message in form.fields.message.queryset %}
+                        <option value="{{ message.pk }}"
+                                {% if form.message.value == message.pk %}selected{% endif %}
+                                data-subject="{{ message.topik }}"
+                                data-content="{{ message.text }}">
+                            {{ message.topik }} ({{ message.owner.username }})
+                        </option>
+                    {% endfor %}
+                </select>
+                {% if form.message.errors %}
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ form.message.errors.0 }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Предпросмотр сообщения -->
+            <div class="preview-card" id="messagePreview">
+                <div class="preview-subject" id="previewSubject">Тема письма</div>
+                <div class="preview-content" id="previewContent">
+                    Содержание письма появится здесь после выбора шаблона
+                </div>
+            </div>
+        </div>
+
+        <!-- Секция 2: Получатели -->
+        <div class="form-section">
+            <h3 class="section-title">
+                <i class="fas fa-users"></i> Получатели
+            </h3>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-user-check"></i> Выберите получателей *
+                </label>
+                <div class="recipients-list">
+                    <div class="checkbox-container">
+                        {% for recipient in form.fields.recipients.queryset %}
+                            <div class="form-check">
+                                <input type="checkbox"
+                                       name="recipients"
+                                       value="{{ recipient.pk }}"
+                                       id="id_recipients_{{ forloop.counter0 }}"
+                                       class="form-check-input"
+                                       {% if recipient.pk in form.recipients.value %}checked{% endif %}>
+                                <label class="form-check-label" for="id_recipients_{{ forloop.counter0 }}">
+                                    <div class="recipient-info">
+                                        <div>
+                                            <div class="recipient-email">{{ recipient.email }}</div>
+                                            {% if recipient.recipient_name %}
+                                                <div class="recipient-name">{{ recipient.recipient_name }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        {% empty %}
+                            <div class="text-center py-4 text-muted">
+                                <i class="fas fa-users-slash fa-2x mb-3"></i>
+                                <p>Нет доступных получателей.
+                                   <a href="{% url 'sending_mail:recipient_new' %}" class="text-decoration-none">Добавить получателя</a>
+                                </p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% if form.recipients.errors %}
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ form.recipients.errors.0 }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge bg-info">
+                        Выбрано: <span id="selectedCount">0</span> получателей
+                    </span>
+                </div>
+                <div>
+                    <a href="{% url 'sending_mail:recipient_new' %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-user-plus"></i> Добавить нового получателя
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Секция 3: Расписание -->
+        <div class="form-section">
+            <h3 class="section-title">
+                <i class="fas fa-clock"></i> Расписание
+            </h3>
+
+            <div class="datetime-inputs">
+                <div class="form-group datetime-group">
+                    <label for="id_started_at" class="form-label">
+                        <i class="fas fa-play-circle"></i> Дата и время начала *
+                    </label>
+                    <input type="datetime-local"
+                           name="started_at"
+                           id="id_started_at"
+                           class="form-control"
+                           value="{{ form.started_at.value|date:'Y-m-d\TH:i' }}"
+                           required>
+                    <i class="fas fa-calendar-alt"></i>
+                    {% if form.started_at.errors %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.started_at.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group datetime-group">
+                    <label for="id_finished_at" class="form-label">
+                        <i class="fas fa-stop-circle"></i> Дата и время окончания *
+                    </label>
+                    <input type="datetime-local"
+                           name="finished_at"
+                           id="id_finished_at"
+                           class="form-control"
+                           value="{{ form.finished_at.value|date:'Y-m-d\TH:i' }}"
+                           required>
+                    <i class="fas fa-calendar-alt"></i>
+                    {% if form.finished_at.errors %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.finished_at.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="alert alert-info mt-3">
+                <i class="fas fa-info-circle"></i>
+                <strong>Информация:</strong> Рассылка будет выполняться автоматически в указанный период времени.
+                {% if object and object.status == 'started' %}
+                    <span class="schedule-badge">
+                        <i class="fas fa-sync fa-spin"></i> Активна сейчас
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Секция 4: Статус (только для редактирования) -->
+        {% if object %}
+        <div class="form-section">
+            <h3 class="section-title">
+                <i class="fas fa-cog"></i> Настройки
+            </h3>
+
+            <div class="form-group">
+                <label for="id_status" class="form-label">
+                    <i class="fas fa-flag"></i> Статус рассылки
+                </label>
+                <select name="status" id="id_status" class="form-select">
+                    {% for value, label in form.fields.status.choices %}
+                        <option value="{{ value }}" {% if form.status.value == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+                {% if form.status.errors %}
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ form.status.errors.0 }}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if user.is_superuser or perms.sending_mail.can_view_all_mailings %}
+            <div class="form-group">
+                <label for="id_owner" class="form-label">
+                    <i class="fas fa-user-tie"></i> Владелец
+                </label>
+                <select name="owner" id="id_owner" class="form-select">
+                    {% for user_obj in form.fields.owner.queryset %}
+                        <option value="{{ user_obj.pk }}" {% if form.owner.value == user_obj.pk %}selected{% endif %}>
+                            {{ user_obj.username }} ({{ user_obj.email }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Кнопки действий -->
+        <div class="action-buttons">
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <i class="fas fa-save"></i>
+                {% if object %}Сохранить изменения{% else %}Создать рассылку{% endif %}
+            </button>
+
+            <a href="{% url 'sending_mail:mailing_list' %}" class="btn-cancel">
+                <i class="fas fa-times"></i> Отменить
+            </a>
+
+            {% if object %}
+                <a href="{% url 'sending_mail:send_mailing' object.pk %}" class="btn btn-warning test-btn">
+                    <i class="fas fa-paper-plane"></i> Тестовая отправка
+                </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Обновление счетчика выбранных получателей
+        function updateSelectedCount() {
+            const selected = $('input[name="recipients"]:checked').length;
+            $('#selectedCount').text(selected);
+
+            // Предупреждение, если не выбрано ни одного получателя
+            const submitBtn = $('#submitBtn');
+            if (selected === 0) {
+                submitBtn.prop('disabled', true).html('<i class="fas fa-exclamation-triangle"></i> Выберите хотя бы одного получателя');
+            } else {
+                submitBtn.prop('disabled', false).html(
+                    '{% if object %}<i class="fas fa-save"></i> Сохранить изменения{% else %}<i class="fas fa-save"></i> Создать рассылку{% endif %}'
+                );
+            }
+        }
+
+        // Инициализация счетчика
+        updateSelectedCount();
+        $('input[name="recipients"]').change(updateSelectedCount);
+
+        // Предпросмотр сообщения
+        $('#id_message').change(function() {
+            const selectedOption = $(this).find('option:selected');
+            const subject = selectedOption.data('subject');
+            const content = selectedOption.data('content');
+
+            if (subject && content) {
+                $('#previewSubject').text(subject);
+                $('#previewContent').text(content);
+                $('#messagePreview').addClass('show');
+            } else {
+                $('#messagePreview').removeClass('show');
+            }
+        });
+
+        // Валидация дат
+        $('#id_finished_at').change(function() {
+            const startDate = new Date($('#id_started_at').val());
+            const endDate = new Date($(this).val());
+
+            if (endDate <= startDate) {
+                alert('Дата окончания должна быть позже даты начала!');
+                $(this).val('');
+                $(this).focus();
+            }
+        });
+
+        // Установка минимальной даты (текущее время)
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        const minDateTime = now.toISOString().slice(0, 16);
+
+        $('#id_started_at').attr('min', minDateTime);
+        $('#id_finished_at').attr('min', minDateTime);
+
+        // Подсказка при наведении на получателей
+        $('.recipient-item').hover(
+            function() {
+                $(this).find('.recipient-actions').fadeIn(200);
+            },
+            function() {
+                $(this).find('.recipient-actions').fadeOut(200);
+            }
+        );
+
+        // Валидация формы перед отправкой
+        $('#mailingForm').submit(function(e) {
+            const selectedRecipients = $('input[name="recipients"]:checked').length;
+
+            if (selectedRecipients === 0) {
+                e.preventDefault();
+                toastr.error('Пожалуйста, выберите хотя бы одного получателя', 'Ошибка', {
+                    timeOut: 5000,
+                    positionClass: "toast-top-center"
+                });
+                $('.recipients-list').animate({
+                    backgroundColor: '#ffe6e6'
+                }, 500).animate({
+                    backgroundColor: '#f8fafc'
+                }, 500);
+                return false;
+            }
+
+            // Проверка дат
+            const startDate = new Date($('#id_started_at').val());
+            const endDate = new Date($('#id_finished_at').val());
+
+            if (endDate <= startDate) {
+                e.preventDefault();
+                toastr.error('Дата окончания должна быть позже даты начала', 'Ошибка', {
+                    timeOut: 5000
+                });
+                return false;
+            }
+
+            // Показать индикатор загрузки
+            $('#submitBtn').html('<i class="fas fa-spinner fa-spin"></i> Сохранение...').prop('disabled', true);
+
+            return true;
+        });
+
+        // Выделение всех получателей
+        $('#selectAll').click(function() {
+            $('input[name="recipients"]').prop('checked', $(this).prop('checked'));
+            updateSelectedCount();
+        });
+
+        // Автоматическая установка даты окончания (начало + 1 день)
+        $('#id_started_at').change(function() {
+            if ($('#id_finished_at').val() === '') {
+                const startDate = new Date($(this).val());
+                const endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000); // +1 день
+                $('#id_finished_at').val(endDate.toISOString().slice(0, 16));
+            }
+        });
+
+        // Инициализация предпросмотра, если форма уже заполнена
+        if ($('#id_message').val()) {
+            $('#id_message').trigger('change');
+        }
+
+        // Подсветка обязательных полей
+        $('input:required, select:required').addClass('required-field');
+
+        // Всплывающие подсказки
+        $('[data-bs-toggle="tooltip"]').tooltip();
+    });
+</script>
+{% endblock %}

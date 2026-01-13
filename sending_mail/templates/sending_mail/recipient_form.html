@@ -1,0 +1,596 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if object %}Редактирование получателя{% else %}Добавление получателя{% endif %}{% endblock %}
+
+{% block body %}
+{% include 'header.html' %}
+
+<style>
+    .recipient-form-container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 30px;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border: 1px solid #eef2f7;
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .form-header-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        color: white;
+        font-size: 2rem;
+    }
+
+    .form-title {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+
+    .form-subtitle {
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+
+    .form-group {
+        margin-bottom: 30px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .form-label i {
+        color: #4361ee;
+        width: 20px;
+        text-align: center;
+    }
+
+    .form-control {
+        border: 2px solid #e0e6ed;
+        border-radius: 10px;
+        padding: 14px 18px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f8fafc;
+    }
+
+    .form-control:focus {
+        border-color: #4361ee;
+        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.15);
+        background: white;
+    }
+
+    .form-text {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .form-text i {
+        color: #4361ee;
+    }
+
+    .error-message {
+        color: #e74c3c;
+        font-size: 0.875rem;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px;
+        background: rgba(231, 76, 60, 0.1);
+        border-radius: 8px;
+        border-left: 4px solid #e74c3c;
+    }
+
+    .character-counter {
+        font-size: 0.85rem;
+        color: #6c757d;
+        text-align: right;
+        margin-top: 8px;
+    }
+
+    .character-counter.warning {
+        color: #f39c12;
+    }
+
+    .character-counter.danger {
+        color: #e74c3c;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 2px solid #f0f4f8;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        border: none;
+        color: white;
+        padding: 14px 35px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        justify-content: center;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(46, 204, 113, 0.3);
+        color: white;
+    }
+
+    .btn-cancel {
+        background: #f8f9fa;
+        border: 2px solid #e0e6ed;
+        color: #6c757d;
+        padding: 14px 35px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        justify-content: center;
+    }
+
+    .btn-cancel:hover {
+        background: #e9ecef;
+        color: #495057;
+        border-color: #dee2e6;
+        text-decoration: none;
+    }
+
+    .preview-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 20px;
+        display: none;
+    }
+
+    .preview-card.show {
+        display: block;
+        animation: slideIn 0.5s ease;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .preview-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        opacity: 0.9;
+    }
+
+    .preview-content {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 15px;
+        font-size: 0.95rem;
+    }
+
+    .preview-label {
+        opacity: 0.8;
+        text-align: right;
+        min-width: 100px;
+    }
+
+    .preview-value {
+        font-weight: 500;
+        word-break: break-word;
+    }
+
+    .required-field {
+        border-left: 4px solid #4361ee;
+    }
+
+    .owner-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(67, 97, 238, 0.1);
+        color: #4361ee;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-left: 10px;
+        font-weight: 500;
+    }
+
+    .duplicate-warning {
+        display: none;
+        padding: 15px;
+        background: rgba(243, 156, 18, 0.1);
+        border-radius: 10px;
+        border-left: 4px solid #f39c12;
+        margin-top: 15px;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 0.8; }
+        50% { opacity: 1; }
+        100% { opacity: 0.8; }
+    }
+</style>
+
+<div class="recipient-form-container">
+    <div class="form-card">
+        <!-- Заголовок формы -->
+        <div class="form-header">
+            <div class="form-header-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <h1 class="form-title">
+                {% if object %}
+                    <i class="fas fa-user-edit text-primary me-2"></i>Редактирование получателя
+                {% else %}
+                    <i class="fas fa-user-plus text-success me-2"></i>Добавление нового получателя
+                {% endif %}
+            </h1>
+            <p class="form-subtitle">
+                {% if object %}
+                    Измените информацию о получателе рассылки
+                {% else %}
+                    Заполните форму для добавления нового клиента в базу рассылок
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Форма -->
+        <form method="post" id="recipientForm" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Поле Email -->
+            <div class="form-group">
+                <label for="id_email" class="form-label">
+                    <i class="fas fa-envelope"></i> Email адрес *
+                </label>
+                <input type="email"
+                       name="email"
+                       id="id_email"
+                       class="form-control required-field"
+                       value="{{ form.email.value|default_if_none:'' }}"
+                       placeholder="client@example.com"
+                       required
+                       autofocus
+                       data-duplicate-check="true">
+                <div class="form-text">
+                    <i class="fas fa-info-circle"></i>
+                    Уникальный email адрес получателя. На этот адрес будут отправляться рассылки.
+                </div>
+                {% if form.email.errors %}
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ form.email.errors.0 }}
+                    </div>
+                {% endif %}
+                <div class="duplicate-warning" id="duplicateWarning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Внимание:</strong> Получатель с таким email уже существует в системе.
+                </div>
+            </div>
+
+            <!-- Поле ФИО -->
+            <div class="form-group">
+                <label for="id_recipient_name" class="form-label">
+                    <i class="fas fa-user"></i> ФИО получателя
+                </label>
+                <input type="text"
+                       name="recipient_name"
+                       id="id_recipient_name"
+                       class="form-control"
+                       value="{{ form.recipient_name.value|default_if_none:'' }}"
+                       placeholder="Иванов Иван Иванович"
+                       maxlength="100">
+                <div class="character-counter" id="nameCounter">
+                    <span id="nameLength">0</span> / 100 символов
+                </div>
+                <div class="form-text">
+                    <i class="fas fa-info-circle"></i>
+                    Полное имя получателя для персонализации рассылок
+                </div>
+                {% if form.recipient_name.errors %}
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ form.recipient_name.errors.0 }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Поле Комментарий -->
+            <div class="form-group">
+                <label for="id_comment" class="form-label">
+                    <i class="fas fa-comment"></i> Комментарий
+                </label>
+                <textarea name="comment"
+                          id="id_comment"
+                          class="form-control"
+                          rows="4"
+                          placeholder="Дополнительная информация о получателе (например: постоянный клиент, интересуется акциями и т.д.)"
+                          maxlength="150">{{ form.comment.value|default_if_none:'' }}</textarea>
+                <div class="character-counter" id="commentCounter">
+                    <span id="commentLength">0</span> / 150 символов
+                </div>
+                <div class="form-text">
+                    <i class="fas fa-info-circle"></i>
+                    Необязательная информация для внутреннего использования
+                </div>
+                {% if form.comment.errors %}
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ form.comment.errors.0 }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Поле Владелец (только для суперпользователей) -->
+            {% if user.is_superuser %}
+            <div class="form-group">
+                <label for="id_owner" class="form-label">
+                    <i class="fas fa-user-tie"></i> Владелец получателя
+                </label>
+                <select name="owner" id="id_owner" class="form-select form-control">
+                    {% for user_obj in form.fields.owner.queryset %}
+                        <option value="{{ user_obj.pk }}" {% if form.owner.value == user_obj.pk %}selected{% endif %}>
+                            {{ user_obj.username }} ({{ user_obj.email }})
+                        </option>
+                    {% endfor %}
+                </select>
+                <div class="form-text">
+                    <i class="fas fa-info-circle"></i>
+                    Пользователь, который будет управлять этим получателем
+                </div>
+            </div>
+            {% else %}
+                <!-- Скрытое поле владельца для обычных пользователей -->
+                <input type="hidden" name="owner" value="{{ user.id }}">
+            {% endif %}
+
+            <!-- Предпросмотр -->
+            <div class="preview-card" id="recipientPreview">
+                <div class="preview-title">
+                    <i class="fas fa-eye me-2"></i>Предпросмотр получателя
+                </div>
+                <div class="preview-content">
+                    <div class="preview-label">Email:</div>
+                    <div class="preview-value" id="previewEmail">client@example.com</div>
+
+                    <div class="preview-label">ФИО:</div>
+                    <div class="preview-value" id="previewName">Иванов Иван Иванович</div>
+
+                    <div class="preview-label">Комментарий:</div>
+                    <div class="preview-value" id="previewComment">Дополнительная информация</div>
+                </div>
+            </div>
+
+            <!-- Кнопки действий -->
+            <div class="form-actions">
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <i class="fas fa-save"></i>
+                    {% if object %}Сохранить изменения{% else %}Добавить получателя{% endif %}
+                </button>
+
+                <a href="{% url 'sending_mail:recipient_list' %}" class="btn-cancel">
+                    <i class="fas fa-times"></i> Отменить
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Счетчики символов
+        function updateCharacterCounters() {
+            const nameLength = $('#id_recipient_name').val().length;
+            const commentLength = $('#id_comment').val().length;
+
+            $('#nameLength').text(nameLength);
+            $('#commentLength').text(commentLength);
+
+            // Подсветка счетчиков
+            $('#nameCounter').toggleClass('warning', nameLength > 80);
+            $('#nameCounter').toggleClass('danger', nameLength > 95);
+
+            $('#commentCounter').toggleClass('warning', commentLength > 120);
+            $('#commentCounter').toggleClass('danger', commentLength > 140);
+        }
+
+        // Инициализация счетчиков
+        updateCharacterCounters();
+        $('#id_recipient_name, #id_comment').on('input', updateCharacterCounters);
+
+        // Предпросмотр в реальном времени
+        function updatePreview() {
+            const email = $('#id_email').val() || 'client@example.com';
+            const name = $('#id_recipient_name').val() || 'Не указано';
+            const comment = $('#id_comment').val() || 'Нет комментария';
+
+            $('#previewEmail').text(email);
+            $('#previewName').text(name);
+            $('#previewComment').text(comment);
+
+            // Показывать предпросмотр, если есть хотя бы email
+            if (email && email !== 'client@example.com') {
+                $('#recipientPreview').addClass('show');
+            } else {
+                $('#recipientPreview').removeClass('show');
+            }
+        }
+
+        $('#id_email, #id_recipient_name, #id_comment').on('input', updatePreview);
+
+        // Проверка дубликатов email (асинхронно)
+        let duplicateCheckTimeout;
+        $('#id_email').on('input', function() {
+            clearTimeout(duplicateCheckTimeout);
+
+            const email = $(this).val();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (email && emailRegex.test(email)) {
+                duplicateCheckTimeout = setTimeout(function() {
+                    $.ajax({
+                        url: '{% url "sending_mail:check_email_duplicate" %}',
+                        type: 'GET',
+                        data: {
+                            'email': email,
+                            'exclude': '{{ object.id|default_if_none:"" }}'
+                        },
+                        success: function(data) {
+                            if (data.exists) {
+                                $('#duplicateWarning').fadeIn();
+                            } else {
+                                $('#duplicateWarning').fadeOut();
+                            }
+                        }
+                    });
+                }, 500);
+            }
+        });
+
+        // Валидация формы перед отправкой
+        $('#recipientForm').submit(function(e) {
+            const email = $('#id_email').val();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            // Проверка email
+            if (!emailRegex.test(email)) {
+                e.preventDefault();
+                toastr.error('Пожалуйста, введите корректный email адрес', 'Ошибка', {
+                    timeOut: 5000,
+                    positionClass: "toast-top-center"
+                });
+                $('#id_email').focus().addClass('is-invalid');
+                return false;
+            }
+
+            // Проверка длины имени
+            const nameLength = $('#id_recipient_name').val().length;
+            if (nameLength > 100) {
+                e.preventDefault();
+                toastr.error('ФИО не должно превышать 100 символов', 'Ошибка', {
+                    timeOut: 5000
+                });
+                return false;
+            }
+
+            // Проверка длины комментария
+            const commentLength = $('#id_comment').val().length;
+            if (commentLength > 150) {
+                e.preventDefault();
+                toastr.error('Комментарий не должен превышать 150 символов', 'Ошибка', {
+                    timeOut: 5000
+                });
+                return false;
+            }
+
+            // Показать индикатор загрузки
+            $('#submitBtn').html('<i class="fas fa-spinner fa-spin"></i> Сохранение...').prop('disabled', true);
+
+            return true;
+        });
+
+        // Автоматическое форматирование имени (первая буква заглавная)
+        $('#id_recipient_name').on('blur', function() {
+            let name = $(this).val().trim();
+            if (name) {
+                // Делаем первую букву каждого слова заглавной
+                name = name.toLowerCase().replace(/\b\w/g, function(char) {
+                    return char.toUpperCase();
+                });
+                $(this).val(name);
+                updatePreview();
+            }
+        });
+
+        // Автофокус на поле email при загрузке
+        $('#id_email').focus();
+
+        // Валидация в реальном времени
+        $('.form-control').on('input', function() {
+            $(this).removeClass('is-invalid');
+        });
+
+        // Инициализация предпросмотра, если форма уже заполнена
+        if ($('#id_email').val()) {
+            updatePreview();
+        }
+
+        // Сохранение формы при нажатии Ctrl+Enter
+        $(document).keydown(function(e) {
+            if (e.ctrlKey && e.keyCode === 13) {
+                $('#submitBtn').click();
+            }
+        });
+
+        // Проверка существующего email при редактировании
+        {% if object and object.email %}
+        $(document).ready(function() {
+            $('#id_email').trigger('input');
+        });
+        {% endif %}
+
+        // Подсказки при наведении
+        $('.form-control').hover(
+            function() {
+                $(this).parent().find('.form-text').fadeIn();
+            },
+            function() {
+                $(this).parent().find('.form-text').fadeOut();
+            }
+        );
+    });
+</script>
+
+{% endblock %}

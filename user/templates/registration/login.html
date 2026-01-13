@@ -1,0 +1,376 @@
+{% extends 'base.html' %}
+{% block body %}
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    body {
+        background: var(--primary-gradient);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        padding: 40px 0;
+    }
+
+    .auth-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        overflow: hidden;
+    }
+
+    .auth-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .auth-body {
+        padding: 2rem;
+    }
+
+    .form-control:focus {
+        border-color: #764ba2;
+        box-shadow: 0 0 0 0.25rem rgba(118, 75, 162, 0.25);
+    }
+
+    .btn-auth {
+        background: var(--primary-gradient);
+        border: none;
+        color: white;
+        transition: all 0.3s ease;
+        padding: 12px;
+        font-weight: 500;
+    }
+
+    .btn-auth:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        color: white;
+    }
+
+    .logo {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-floating {
+        margin-bottom: 1.5rem;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        z-index: 10;
+        background: none;
+        border: none;
+        color: #6c757d;
+    }
+
+    .password-container {
+        position: relative;
+    }
+
+    .strength-meter {
+        height: 5px;
+        margin-top: 5px;
+        border-radius: 2px;
+        background: #e9ecef;
+        overflow: hidden;
+    }
+
+    .strength-fill {
+        height: 100%;
+        width: 0%;
+        transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .strength-text {
+        font-size: 0.8rem;
+        margin-top: 5px;
+        display: block;
+    }
+
+    .social-login {
+        display: flex;
+        gap: 10px;
+        margin: 20px 0;
+    }
+
+    .social-btn {
+        flex: 1;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        background: white;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .social-btn:hover {
+        background: #f8f9fa;
+        transform: translateY(-1px);
+    }
+
+    .social-btn.google {
+        color: #DB4437;
+    }
+
+    .social-btn.github {
+        color: #333;
+    }
+
+    .social-btn.facebook {
+        color: #4267B2;
+    }
+</style>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="auth-card">
+                <!-- Заголовок -->
+                <div class="auth-header">
+                    <div class="logo">
+                        <i class="fas fa-mail-bulk"></i>
+                    </div>
+                    <h1 class="h3 mb-3 fw-normal">Добро пожаловать</h1>
+                    <p class="mb-0">Войдите в ваш аккаунт</p>
+                </div>
+
+                <!-- Тело формы -->
+                <div class="auth-body">
+                    <!-- Сообщения об ошибках -->
+                    <div id="error-messages" style="display: none;"></div>
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Неверный email или пароль. Пожалуйста, попробуйте снова.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endif %}
+
+                    <!-- Форма входа -->
+                    <form id="login-form" method="post" action="{% url 'user:login' %}">
+                        {% csrf_token %}
+
+                        <!-- Поле Email -->
+                        <div class="form-floating">
+                            <input type="email"
+                                   name="username"
+                                   class="form-control"
+                                   id="id_username"
+                                   placeholder="name@example.com"
+                                   required
+                                   data-toggle="tooltip"
+                                   title="Введите ваш email">
+                            <label for="id_username">
+                                <i class="fas fa-envelope me-2"></i>Email адрес
+                            </label>
+                            <div class="invalid-feedback" id="email-error"></div>
+                        </div>
+
+                        <!-- Поле Пароль -->
+                        <div class="form-floating password-container">
+                            <input type="password"
+                                   name="password"
+                                   class="form-control"
+                                   id="id_password"
+                                   placeholder="Пароль"
+                                   required>
+                            <label for="id_password">
+                                <i class="fas fa-lock me-2"></i>Пароль
+                            </label>
+                            <button type="button" class="password-toggle" id="toggle-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <div class="invalid-feedback" id="password-error"></div>
+                        </div>
+
+                        <!-- Дополнительные опции -->
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <a href="{% url 'user:password_reset' %}" class="text-decoration-none small">
+                                    <i class="fas fa-key me-1"></i>Забыли пароль?
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Кнопка входа -->
+                        <button type="submit" class="w-100 btn btn-auth mb-3" id="login-btn">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            <span id="login-text">Войти</span>
+                            <span id="login-spinner" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>Вход...
+                                </span>
+                        </button>
+
+                        <!-- Разделитель -->
+                        <div class="d-flex align-items-center my-4">
+                            <hr class="flex-grow-1">
+                            <span class="mx-3 text-muted">или</span>
+                            <hr class="flex-grow-1">
+                        </div>
+
+                        <!-- Ссылка на регистрацию -->
+                        <div class="text-center">
+                            <p class="mb-3">Нет аккаунта?</p>
+                            <a href="{% url 'user:register' %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-user-plus me-2"></i>Создать аккаунт
+                            </a>
+                        </div>
+
+                        <!-- Скрытое поле next -->
+                        {% if next %}
+                        <input type="hidden" name="next" value="{{ next }}">
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            <!-- Футер -->
+            <div class="text-center mt-4 text-white">
+                <p class="mb-0">&copy; {% now "Y" %} Сервис рассылок. Все права защищены.</p>
+                <small>Работает на Django</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Инициализация tooltips
+        $('[data-toggle="tooltip"]').tooltip();
+
+        // Переключение видимости пароля
+        $('#toggle-password').click(function() {
+            const passwordField = $('#id_password');
+            const type = passwordField.attr('type') === 'password' ? 'text' : 'password';
+            passwordField.attr('type', type);
+            $(this).find('i').toggleClass('fa-eye fa-eye-slash');
+        });
+
+        // Валидация формы
+        $('#login-form').submit(function(e) {
+            let isValid = true;
+
+            // Очистка предыдущих ошибок
+            $('.is-invalid').removeClass('is-invalid');
+            $('.invalid-feedback').text('');
+            $('#error-messages').hide().empty();
+
+            // Валидация email
+            const email = $('#id_username').val().trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!email) {
+                $('#id_username').addClass('is-invalid');
+                $('#email-error').text('Пожалуйста, введите email');
+                isValid = false;
+            } else if (!emailRegex.test(email)) {
+                $('#id_username').addClass('is-invalid');
+                $('#email-error').text('Введите корректный email адрес');
+                isValid = false;
+            }
+
+            // Валидация пароля
+            const password = $('#id_password').val();
+            if (!password) {
+                $('#id_password').addClass('is-invalid');
+                $('#password-error').text('Пожалуйста, введите пароль');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                showNotification('Пожалуйста, исправьте ошибки в форме', 'error');
+            } else {
+                // Показать индикатор загрузки
+                $('#login-text').hide();
+                $('#login-spinner').show();
+                $('#login-btn').prop('disabled', true);
+            }
+        });
+
+        // Автофокус на поле email
+        $('#id_username').focus();
+
+        // Плавный фокус на поля формы
+        $('.form-control').focus(function() {
+            $(this).parent().addClass('focused');
+        }).blur(function() {
+            $(this).parent().removeClass('focused');
+        });
+
+        // Восстановить форму при ошибках
+        {% if form.errors %}
+        $(document).ready(function() {
+            showNotification('Неверный email или пароль', 'error');
+
+            // Добавить класс ошибки к полям
+            $('#id_username').addClass('is-invalid');
+            $('#id_password').addClass('is-invalid');
+        });
+        {% endif %}
+
+        // Функция для показа уведомлений
+        function showNotification(message, type = 'success') {
+            const config = {
+                closeButton: true,
+                progressBar: true,
+                positionClass: "toast-top-right",
+                timeOut: 5000
+            };
+
+            switch(type) {
+                case 'error':
+                    toastr.error(message, 'Ошибка', config);
+                    break;
+                case 'warning':
+                    toastr.warning(message, 'Внимание', config);
+                    break;
+                case 'info':
+                    toastr.info(message, 'Информация', config);
+                    break;
+                default:
+                    toastr.success(message, 'Успешно', config);
+            }
+        }
+
+        // Сохранение состояния "Запомнить меня"
+        if (localStorage.getItem('rememberMe') === 'true') {
+            $('#rememberMe').prop('checked', true);
+            const savedEmail = localStorage.getItem('savedEmail');
+            if (savedEmail) {
+                $('#id_username').val(savedEmail);
+            }
+        }
+
+        $('#rememberMe').change(function() {
+            if ($(this).is(':checked')) {
+                localStorage.setItem('rememberMe', 'true');
+                localStorage.setItem('savedEmail', $('#id_username').val());
+            } else {
+                localStorage.removeItem('rememberMe');
+                localStorage.removeItem('savedEmail');
+            }
+        });
+
+        // Автоматическое сохранение email при вводе
+        $('#id_username').on('input', function() {
+            if ($('#rememberMe').is(':checked')) {
+                localStorage.setItem('savedEmail', $(this).val());
+            }
+        });
+    });
+</script>
+{% endblock %}
